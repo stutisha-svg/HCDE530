@@ -4,7 +4,7 @@ import csv
 
 FILENAME = "dickens_quotes.csv"
 
-
+# function to count the number of words in a text
 def count_words(text: str) -> int:
     # Same rule as demo_word_count.py: words = chunks separated by whitespace.
     return len(text.split())
@@ -16,9 +16,11 @@ def main() -> None:
         for row in csv.DictReader(f):
             quotes.append(row)
 
+# loop through the quotes and count the number of words in each quote
     word_counts: list[int] = []
     for row in quotes:
         text = row["Quote"]
+        # count the number of words in the quote
         n = count_words(text)
         word_counts.append(n)
         # One line per quote so you can scan counts alongside who said it.
@@ -28,6 +30,7 @@ def main() -> None:
         print("No quotes found in CSV.")
         return
 
+# print the summary statistics
     total = len(word_counts)
     print()
     print("-- Summary " + "-" * 32)
