@@ -20,6 +20,7 @@ demo_responses.csv
 demo_word_count.py
 dickens_quotes.csv
 dickens_word_count.py
+dickens_word_counts.csv
 tools/update_cursorrules_tree.py
 week2 workspace.code-workspace
 ```

@@ -1,8 +1,9 @@
-"""Read Dickens quotes from CSV and report word counts per quote plus summary stats."""
+"""Read Dickens quotes from CSV, print a summary table, and write per-row results to CSV."""
 
 import csv
 
-FILENAME = "dickens_quotes.csv"
+INPUT_CSV = "dickens_quotes.csv"
+OUTPUT_CSV = "dickens_word_counts.csv"
 
 
 def count_words(text: str) -> int:
@@ -12,12 +13,14 @@ def count_words(text: str) -> int:
 
 def main() -> None:
     quotes: list[dict[str, str]] = []
-    with open(FILENAME, newline="", encoding="utf-8") as f:
+    with open(INPUT_CSV, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             quotes.append(row)
 
     word_counts: list[int] = []
-    # Header row for the per-quote table (character, count, first 60 chars of quote).
+    # Each dict becomes one row in the output CSV (and one printed line).
+    result_rows: list[dict[str, str | int]] = []
+
     print(f"{'Character':<28} {'Words':<6} {'Quote (first 60 chars)'}")
     print("-" * 95)
 
@@ -31,13 +34,32 @@ def main() -> None:
         else:
             preview = text
 
+        # add the per-row results to the list
+        result_rows.append(
+            {
+                "Character": row["Character"],
+                "Novel": row["Novel"],
+                "Word_count": n,
+                "Quote_preview": preview,
+            }
+        )
         print(f"{row['Character']:<28} {n:<6} {preview}")
-
+# write the per-row results to a new file for spreadsheets / grading.
     if not word_counts:
         print("No quotes found in CSV.")
         return
 
+    # Write the same per-row results to a new file for spreadsheets / grading.
+    fieldnames = ["Character", "Novel", "Word_count", "Quote_preview"]
+    with open(OUTPUT_CSV, "w", newline="", encoding="utf-8") as out:
+        writer = csv.DictWriter(out, fieldnames=fieldnames)
+        writer.writeheader()
+        for r in result_rows:
+            writer.writerow(r)
+
     total = len(word_counts)
+    print()
+    print(f"Wrote {OUTPUT_CSV} ({total} rows).")
     print()
     print("-- Summary " + "-" * 32)
     print(f"  Total responses : {total}")
