@@ -1,0 +1,18 @@
+# HCDE530 — project context for Cursor
+
+## Stack and layout
+- Course / analysis scripts in Python 3. Standard library first (`csv`, `pathlib`, etc.) unless the assignment requires otherwise.
+- Demo data lives next to scripts (e.g. `demo_responses.csv`). Prefer explicit filenames or `pathlib.Path` relative to the script or cwd; document assumptions in a short comment at the top if non-obvious.
+
+## CSV and text data
+- Read CSV with `csv.DictReader` / write with `csv.DictWriter`. Use `encoding="utf-8"` and `newline=""` when opening files for the csv module.
+- Accumulate rows in a list of dicts (e.g. `responses.append(row)` from the reader) when you need multiple passes or downstream stats; stream in a single loop only when memory or one-pass logic matters.
+
+## Code style (match existing scripts)
+- Keep scripts linear and readable for grading: clear section comments, small helpers with docstrings (see `count_words` pattern), f-strings for formatted console output.
+- Prefer explicit column names from the CSV (`row["participant_id"]`, etc.) over positional indices.
+- Do not add heavy frameworks, config layers, or unrelated refactors unless asked.
+
+## Changes and quality
+- Match naming and formatting of the file you are editing. Avoid drive-by edits to unrelated files.
+- Do not commit secrets, API keys, or raw identifiable participant data; use anonymized or demo datasets in-repo.
