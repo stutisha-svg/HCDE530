@@ -4,7 +4,7 @@ import csv
 
 FILENAME = "dickens_quotes.csv"
 
-# function to count the number of words in a text
+
 def count_words(text: str) -> int:
     # Same rule as demo_word_count.py: words = chunks separated by whitespace.
     return len(text.split())
@@ -16,28 +16,34 @@ def main() -> None:
         for row in csv.DictReader(f):
             quotes.append(row)
 
-# loop through the quotes and count the number of words in each quote
     word_counts: list[int] = []
+    # Header row for the per-quote table (character, count, first 60 chars of quote).
+    print(f"{'Character':<28} {'Words':<6} {'Quote (first 60 chars)'}")
+    print("-" * 95)
+
     for row in quotes:
         text = row["Quote"]
-        # count the number of words in the quote
         n = count_words(text)
         word_counts.append(n)
-        # One line per quote so you can scan counts alongside who said it.
-        print(f"{n:3} words  |  {row['Character']}, {row['Novel']}")
+
+        if len(text) > 60:
+            preview = text[:60] + "..."
+        else:
+            preview = text
+
+        print(f"{row['Character']:<28} {n:<6} {preview}")
 
     if not word_counts:
         print("No quotes found in CSV.")
         return
 
-# print the summary statistics
     total = len(word_counts)
     print()
     print("-- Summary " + "-" * 32)
-    print(f"  Quotes          : {total}")
-    print(f"  Shortest quote  : {min(word_counts)} words")
-    print(f"  Longest quote   : {max(word_counts)} words")
-    print(f"  Average length  : {sum(word_counts) / total:.1f} words")
+    print(f"  Total responses : {total}")
+    print(f"  Shortest        : {min(word_counts)} words")
+    print(f"  Longest         : {max(word_counts)} words")
+    print(f"  Average         : {sum(word_counts) / total:.1f} words")
 
 
 if __name__ == "__main__":
