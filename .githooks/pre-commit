@@ -1,0 +1,12 @@
+#!/bin/sh
+# Regenerate directory tree in .cursorrules before each commit.
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT" || exit 0
+if command -v python >/dev/null 2>&1; then
+  python tools/update_cursorrules_tree.py
+elif command -v py >/dev/null 2>&1; then
+  py -3 tools/update_cursorrules_tree.py
+else
+  exit 0
+fi
+git add .cursorrules

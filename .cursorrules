@@ -1,5 +1,26 @@
 # HCDE530 — project context for Cursor
 
+## Directory structure (auto-generated)
+
+Do not edit the fenced block between the HTML comments by hand. Refresh it after adding, renaming, or removing project files:
+
+- **One-time setup (recommended):** from the repo root run `git config core.hooksPath .githooks` so each commit runs `tools/update_cursorrules_tree.py` and re-stages `.cursorrules`.
+- **Any time:** run `python tools/update_cursorrules_tree.py` (or `py -3 tools/update_cursorrules_tree.py` on Windows) before pushing, or ask the agent to run it after file-tree changes.
+
+The listing is derived from `git ls-files` (tracked + untracked, honoring `.gitignore`).
+
+<!-- DIRECTORY_TREE_START -->
+```
+.cursorrules
+.githooks/pre-commit
+.gitignore
+demo_responses.csv
+demo_word_count.py
+tools/update_cursorrules_tree.py
+week2 workspace.code-workspace
+```
+<!-- DIRECTORY_TREE_END -->
+
 ## Stack and layout
 - Course / analysis scripts in Python 3. Standard library first (`csv`, `pathlib`, etc.) unless the assignment requires otherwise.
 - Demo data lives next to scripts (e.g. `demo_responses.csv`). Prefer explicit filenames or `pathlib.Path` relative to the script or cwd; document assumptions in a short comment at the top if non-obvious.
@@ -15,4 +36,5 @@
 
 ## Changes and quality
 - Match naming and formatting of the file you are editing. Avoid drive-by edits to unrelated files.
+- After adding, removing, or renaming project files (not only code), run `python tools/update_cursorrules_tree.py` so the directory tree above stays accurate (or rely on `.githooks/pre-commit` if `core.hooksPath` is set).
 - Do not commit secrets, API keys, or raw identifiable participant data; use anonymized or demo datasets in-repo.
