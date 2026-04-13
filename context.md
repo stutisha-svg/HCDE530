@@ -58,6 +58,22 @@ The CSV holds **synthetic demo quotes** (not real participant data). Treat it as
 
 ---
 
+## Intro: what this dashboard is doing (`demo_word_count.py` → `Dashboard.html`)
+
+**Purpose of the analysis (plain language):**  
+This week’s demo is a **small text-metrics exercise**, not a full qualitative study. For each row in the dataset, `demo_word_count.py` counts **how many words** appear in the free-text `response` field (split on whitespace). That number is a simple **length proxy**—useful for practicing **loops, lists, conditionals**, and for seeing the same results in the **terminal** and in a **browser dashboard**. The dashboard also shows **cohort-level summaries**: how many responses you have, and the **shortest, longest, and average** word count across the set.
+
+**What `Dashboard.html` is showing:**  
+The page is a **read-only report**: a short header explaining the demo, a row of **summary cards** (the same statistics printed under “Summary” in the console), and a **table** of every synthetic participant (ID, role, word count, and an expandable snippet of the response text). Regenerating the HTML overwrites the file so the page always matches the CSV + script you just ran.
+
+**Source of the data (important for HCD ethics framing):**  
+All text comes from **`demo_responses.csv`**. The lines are **fabricated for class**: they are written to *sound* like anonymous practitioners reflecting on research and design work, but they are **not real interview transcripts**. Treat them as **paraphrased, anonymous-style demo responses**—no real individuals, companies, or study sessions are represented. IDs like `P01` are **placeholders**, not participants you could re-identify. Use this dataset only to learn **workflow and code structure**; if you later analyze **real** qualitative data, you would follow your institution’s ethics process, consent, and retention rules.
+
+**Why this matters for the assignment:**  
+The story for your instructor is: **synthetic CSV → readable Python → static HTML**, with a clear note that the **content is instructional**, not evidence about any real population.
+
+---
+
 ## `demo_responses.csv` — columns and meaning
 
 | Column | Meaning | Typical use in the script / dashboard |
