@@ -12,7 +12,8 @@ def count_words(text: str) -> int:
 
 
 def main() -> None:
-    quotes: list[dict[str, str]] = []
+    # read the quotes from the csv file
+    quotes: list[dict[str, str]] = [] # list of dictionaries
     with open(INPUT_CSV, newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             quotes.append(row)
@@ -20,20 +21,20 @@ def main() -> None:
     word_counts: list[int] = []
     # Each dict becomes one row in the output CSV (and one printed line).
     result_rows: list[dict[str, str | int]] = []
-
+# print the header row
     print(f"{'Character':<28} {'Words':<6} {'Quote (first 60 chars)'}")
     print("-" * 95)
-
+# loop through the quotes and count the number of words in each quote
     for row in quotes:
         text = row["Quote"]
         n = count_words(text)
         word_counts.append(n)
-
+# if the quote is longer than 60 characters, add an ellipsis to the end
         if len(text) > 60:
             preview = text[:60] + "..."
         else:
             preview = text
-
+# add the per-row results to the list
         # add the per-row results to the list
         result_rows.append(
             {
