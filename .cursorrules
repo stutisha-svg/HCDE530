@@ -24,6 +24,12 @@ dickens_word_counts.csv
 tools/update_cursorrules_tree.py
 week2 workspace.code-workspace
 week2.md
+week3/clean_responses.csv
+week3/clean_responses_csv.py
+week3/count_roles.py
+week3/responses.csv
+week3/week3_analysis_buggy.py
+week3/week3_survey_messy.csv
 ```
 <!-- DIRECTORY_TREE_END -->
 
