@@ -14,7 +14,14 @@ START = "<!-- DIRECTORY_TREE_START -->"
 END = "<!-- DIRECTORY_TREE_END -->"
 
 ROOT = Path(__file__).resolve().parents[1]
-CURSORRULES = ROOT / ".cursorrules"
+
+
+def cursorrules_file() -> Path | None:
+    """Prefer root `.cursorrules`; use `week2/.cursorrules` if that is where it lives."""
+    for candidate in (ROOT / ".cursorrules", ROOT / "week2" / ".cursorrules"):
+        if candidate.is_file():
+            return candidate
+    return None
 
 
 def git_tracked_and_untracked() -> list[str] | None:
@@ -73,14 +80,17 @@ def inject_tree(content: str, block: str) -> str:
 
 
 def main() -> int:
+    cursorrules = cursorrules_file()
+    if cursorrules is None:
+        return 0
     paths = git_tracked_and_untracked()
     if paths is None:
         paths = walk_files()
     block = format_block(paths)
-    text = CURSORRULES.read_text(encoding="utf-8")
+    text = cursorrules.read_text(encoding="utf-8")
     new_text = inject_tree(text, block)
     if new_text != text:
-        CURSORRULES.write_text(new_text, encoding="utf-8", newline="\n")
+        cursorrules.write_text(new_text, encoding="utf-8", newline="\n")
     return 0
 
 

@@ -9,4 +9,8 @@ elif command -v py >/dev/null 2>&1; then
 else
   exit 0
 fi
-git add .cursorrules
+for f in .cursorrules week2/.cursorrules; do
+  if [ -f "$f" ]; then
+    git add "$f"
+  fi
+done
