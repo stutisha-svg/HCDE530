@@ -1,0 +1,10 @@
+metric,value,category,review_id,app
+total_reviews_fetched,500,,,
+reviews_after_filter,270,,,verified_purchase and rating>=4
+max_helpful_votes,47,user research,31,Lookback
+min_helpful_votes,0,usability testing,41,Maze
+category_count,65,collaborative whiteboard,,
+category_count,43,field research,,
+category_count,49,research repository,,
+category_count,57,usability testing,,
+category_count,56,user research,,
