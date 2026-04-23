@@ -11,25 +11,28 @@ The listing is derived from `git ls-files` (tracked + untracked, honoring `.giti
 
 <!-- DIRECTORY_TREE_START -->
 ```
-.cursorrules
 .githooks/pre-commit
 .gitignore
-Dashboard.html
-context.md
-demo_responses.csv
-demo_word_count.py
-dickens_quotes.csv
-dickens_word_count.py
-dickens_word_counts.csv
 tools/update_cursorrules_tree.py
-week2 workspace.code-workspace
-week2.md
+week2/.cursorrules
+week2/Dashboard.html
+week2/context.md
+week2/demo_responses.csv
+week2/demo_word_count.py
+week2/dickens_quotes.csv
+week2/dickens_word_count.py
+week2/dickens_word_counts.csv
+week2/week2 workspace.code-workspace
+week2/week2.md
 week3/clean_responses.csv
 week3/clean_responses_csv.py
 week3/count_roles.py
 week3/responses.csv
+week3/week3.md
 week3/week3_analysis_buggy.py
 week3/week3_survey_messy.csv
+week4/fetch_reviews.py
+week4/reviews_category_helpful.csv
 ```
 <!-- DIRECTORY_TREE_END -->
 
