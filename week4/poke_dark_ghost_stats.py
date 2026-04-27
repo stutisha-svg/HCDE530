@@ -1,0 +1,204 @@
+"""
+Fetch 50+ dark/ghost Pokemon from PokeAPI (Gen 1-4), then export stats to CSV.
+
+Source API docs: https://pokeapi.co
+"""
+
+from __future__ import annotations #annotations are used to type hint the code
+
+import csv #csv module is used to read and write csv files
+import json
+import os #os module is used to interact with the operating system  
+import sys #sys module is used to interact with the system
+import time #time module is used to work with time
+import urllib.parse
+import urllib.request #urllib.request module is used to make HTTP requests
+from pathlib import Path
+
+#API base URL and env file path and output CSV file path and gen 4 max id and type names and request pause seconds
+API_BASE = "https://pokeapi.co/api/v2" 
+ENV_PATH = Path(__file__).resolve().parent / ".env"
+OUTPUT_CSV = Path(__file__).resolve().parent / "pokemon_dark_ghost_gen1_4.csv"
+GEN4_MAX_ID = 493  # National Dex through Diamond/Pearl/Platinum era.
+TYPE_NAMES = ("dark", "ghost")
+REQUEST_PAUSE_SEC = 0.05
+
+#load dotenv file and return a dictionary of key-value pairs
+def load_dotenv(path: Path) -> dict[str, str]:
+    out: dict[str, str] = {} #empty dictionary to store key-value pairs
+    if not path.is_file():
+        return out
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        #split lines into key-value pairs
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        out[key.strip()] = val.strip().strip('"').strip("'")
+    return out
+
+
+def env_var(name: str, file_env: dict[str, str], default: str = "") -> str:
+    return (os.environ.get(name) or file_env.get(name) or default).strip()
+
+
+def get_json(url: str, api_key: str) -> dict:
+    # PokéAPI is public; this header simply links your .env API_KEY into requests.
+    headers = {"User-Agent": "HCDE530-week4-pokeapi"}
+    if api_key:
+        headers["X-API-Key"] = api_key
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.load(resp)
+
+
+def pokemon_id_from_url(url: str) -> int | None:
+    # Example URL: https://pokeapi.co/api/v2/pokemon/94/
+    path = urllib.parse.urlparse(url).path.rstrip("/")
+    tail = path.split("/")[-1]
+    return int(tail) if tail.isdigit() else None
+
+
+def species_id_from_pokemon_payload(payload: dict) -> int | None:
+    species_url = str(payload.get("species", {}).get("url") or "")
+    return pokemon_id_from_url(species_url)
+
+
+def collect_candidate_payloads(api_key: str) -> list[dict]:
+    urls: dict[str, str] = {}
+    for type_name in TYPE_NAMES:
+        payload = get_json(f"{API_BASE}/type/{type_name}", api_key)
+        for item in payload.get("pokemon", []):
+            poke = item.get("pokemon", {})
+            url = str(poke.get("url") or "")
+            if url:
+                urls[url] = url
+        time.sleep(REQUEST_PAUSE_SEC)
+
+    out: list[dict] = []
+    for idx, url in enumerate(sorted(urls.keys()), start=1):
+        payload = get_json(url, api_key)
+        sid = species_id_from_pokemon_payload(payload)
+        # Platinum-era filter by species id: include forms/variants of Gen 1-4 species.
+        if sid and sid <= GEN4_MAX_ID:
+            out.append(payload)
+        if idx % 25 == 0:
+            print(f"Scanned {idx}/{len(urls)} candidates...")
+        time.sleep(REQUEST_PAUSE_SEC)
+    return out
+
+
+def normalize_types(types_block: list[dict]) -> str:
+    sorted_types = sorted(types_block, key=lambda t: int(t.get("slot", 99)))
+    names = [str(t.get("type", {}).get("name") or "") for t in sorted_types]
+    return "|".join([n for n in names if n])
+
+
+def stats_map(stats_block: list[dict]) -> dict[str, int]:
+    mapped = {str(s.get("stat", {}).get("name") or ""): int(s.get("base_stat") or 0) for s in stats_block}
+    return {
+        # hp: total hit points (how much damage a Pokemon can absorb before fainting).
+        "hp": mapped.get("hp", 0),
+        # attack: physical power used for contact/physical moves.
+        "attack": mapped.get("attack", 0),
+        # defense: resistance against incoming physical damage.
+        "defense": mapped.get("defense", 0),
+        # special_attack: power for special/energy-based moves.
+        "special_attack": mapped.get("special-attack", 0),
+        # special_defense: resistance against special/energy-based attacks.
+        "special_defense": mapped.get("special-defense", 0),
+        # speed: determines turn order; higher speed usually moves first.
+        "speed": mapped.get("speed", 0),
+    }
+
+
+def print_ascii_banner(name: str) -> None:
+    art = r"""
+          _.--'""`-.
+        ,'          `.
+      ,'   .-""-.     \
+     /    /  _   \     ;
+    ;    |  ( )  |    /
+    |     \  ^  /    /
+    ;      `---'   .'
+     \   DARK/GHOST /
+      `.         ,'
+        `-.___.-'
+    """
+    print(art)
+    print(f"First Pokemon loaded: {name}")
+
+
+def fetch_rows(candidates: list[dict], target_count: int) -> list[dict[str, int | str]]:
+    rows: list[dict[str, int | str]] = []
+    printed_first = False
+    total = min(len(candidates), max(target_count, 50))
+
+    for idx, payload in enumerate(candidates[:total], start=1):
+        row_stats = stats_map(payload.get("stats", []))
+        species_id = species_id_from_pokemon_payload(payload) or 0
+        row = {
+            "id": int(payload.get("id") or 0),
+            "species_id": species_id,
+            "name": str(payload.get("name") or ""),
+            "types": normalize_types(payload.get("types", [])),
+            "base_experience": int(payload.get("base_experience") or 0),
+            "height": int(payload.get("height") or 0),
+            "weight": int(payload.get("weight") or 0),
+            **row_stats,
+        }
+        rows.append(row)
+
+        if not printed_first:
+            print_ascii_banner(row["name"])
+            printed_first = True
+
+        print(f"[{idx}/{total}] fetched {row['name']}")
+        time.sleep(REQUEST_PAUSE_SEC)
+
+    return rows
+
+
+def write_csv(path: Path, rows: list[dict[str, int | str]]) -> None:
+    fields = [
+        "id",
+        "species_id",
+        "name",
+        "types",
+        "base_experience",
+        "height",
+        "weight",
+        "hp",
+        "attack",
+        "defense",
+        "special_attack",
+        "special_defense",
+        "speed",
+    ]
+    with path.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def main() -> int:
+    file_env = load_dotenv(ENV_PATH)
+    api_key = env_var("API_KEY", file_env, "")
+    target_count = int(env_var("POKEMON_TARGET_COUNT", file_env, "55") or 55)
+
+    candidates = collect_candidate_payloads(api_key)
+    if len(candidates) < 50:
+        print(
+            f"Only {len(candidates)} dark/ghost entries found with species_id <= {GEN4_MAX_ID}.",
+            file=sys.stderr,
+        )
+        return 1
+
+    rows = fetch_rows(candidates, target_count)
+    write_csv(OUTPUT_CSV, rows)
+    print(f"\nWrote {len(rows)} rows to {OUTPUT_CSV}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

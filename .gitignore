@@ -25,7 +25,7 @@ wheels/
 venv/
 ENV/
 
-# week4/.env: STANDS4_UID + API_KEY -> https://www.stands4.com/services/v2/literature.php (week4/literature_stands4.py)
+# week4/.env: API_KEY + PokéAPI script settings (week4/poke_dark_ghost_stats.py)
 .env
 
 # Tools / IDE
