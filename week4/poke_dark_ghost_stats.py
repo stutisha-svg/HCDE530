@@ -11,9 +11,9 @@ import json
 import os #os module is used to interact with the operating system  
 import sys #sys module is used to interact with the system
 import time #time module is used to work with time
-import urllib.parse
+import urllib.parse #urllib.parse module is used to parse URLs
 import urllib.request #urllib.request module is used to make HTTP requests
-from pathlib import Path
+from pathlib import Path #pathlib module is used to work with file paths
 
 #API base URL and env file path and output CSV file path and gen 4 max id and type names and request pause seconds
 API_BASE = "https://pokeapi.co/api/v2" 
@@ -31,17 +31,17 @@ def load_dotenv(path: Path) -> dict[str, str]:
     for raw in path.read_text(encoding="utf-8").splitlines():
         #split lines into key-value pairs
         line = raw.strip()
-        if not line or line.startswith("#") or "=" not in line:
+        if not line or line.startswith("#") or "=" not in line: #if line is empty, starts with #, or does not contain =, skip it
             continue
-        key, _, val = line.partition("=")
+        key, _, val = line.partition("=") #partition the line into key, _, val
         out[key.strip()] = val.strip().strip('"').strip("'")
     return out
 
-
+#return the value of the environment variable or the default value if the environment variable is not set
 def env_var(name: str, file_env: dict[str, str], default: str = "") -> str:
     return (os.environ.get(name) or file_env.get(name) or default).strip()
 
-
+#make an HTTP request to the URL and return the JSON response
 def get_json(url: str, api_key: str) -> dict:
     # PokéAPI is public; this header simply links your .env API_KEY into requests.
     headers = {"User-Agent": "HCDE530-week4-pokeapi"}
@@ -63,33 +63,34 @@ def species_id_from_pokemon_payload(payload: dict) -> int | None:
     species_url = str(payload.get("species", {}).get("url") or "")
     return pokemon_id_from_url(species_url)
 
-
+#collect candidate payloads from the API
 def collect_candidate_payloads(api_key: str) -> list[dict]:
     urls: dict[str, str] = {}
     for type_name in TYPE_NAMES:
-        payload = get_json(f"{API_BASE}/type/{type_name}", api_key)
+        payload = get_json(f"{API_BASE}/type/{type_name}", api_key) #get the payload from the API
         for item in payload.get("pokemon", []):
-            poke = item.get("pokemon", {})
+            poke = item.get("pokemon", {}) #get the pokemon from the payload
             url = str(poke.get("url") or "")
             if url:
-                urls[url] = url
+                urls[url] = url #add the url to the dictionary
         time.sleep(REQUEST_PAUSE_SEC)
 
     out: list[dict] = []
     for idx, url in enumerate(sorted(urls.keys()), start=1):
-        payload = get_json(url, api_key)
-        sid = species_id_from_pokemon_payload(payload)
+        payload = get_json(url, api_key) #get the payload from the API
+        sid = species_id_from_pokemon_payload(payload) #get the species id from the payload
         # Platinum-era filter by species id: include forms/variants of Gen 1-4 species.
         if sid and sid <= GEN4_MAX_ID:
-            out.append(payload)
+            out.append(payload) #add the payload to the list
         if idx % 25 == 0:
-            print(f"Scanned {idx}/{len(urls)} candidates...")
+            print(f"Scanned {idx}/{len(urls)} candidates...") #print the progress
         time.sleep(REQUEST_PAUSE_SEC)
     return out
 
 
+#normalize the types
 def normalize_types(types_block: list[dict]) -> str:
-    sorted_types = sorted(types_block, key=lambda t: int(t.get("slot", 99)))
+    sorted_types = sorted(types_block, key=lambda t: int(t.get("slot", 99))) #sort the types by the slot
     names = [str(t.get("type", {}).get("name") or "") for t in sorted_types]
     return "|".join([n for n in names if n])
 
