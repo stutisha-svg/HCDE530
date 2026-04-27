@@ -25,10 +25,8 @@ wheels/
 venv/
 ENV/
 
-# Environment and secrets
+# week4/.env: STANDS4_UID + API_KEY -> https://www.stands4.com/services/v2/literature.php (week4/literature_stands4.py)
 .env
-.env.*
-!.env.example
 
 # Tools / IDE
 .pytest_cache/
