@@ -16,7 +16,7 @@ import urllib.request #urllib.request module is used to make HTTP requests
 from pathlib import Path #pathlib module is used to work with file paths
 
 #API base URL and env file path and output CSV file path and gen 4 max id and type names and request pause seconds
-API_BASE = "https://pokeapi.co/api/v2" 
+API_BASE = "https://pokeapi.co/api/v2"  # Base endpoint; we call /type/{name} and /pokemon/{id}.
 ENV_PATH = Path(__file__).resolve().parent / ".env"
 OUTPUT_CSV = Path(__file__).resolve().parent / "pokemon_dark_ghost_gen1_4.csv"
 GEN4_MAX_ID = 493  # National Dex through Diamond/Pearl/Platinum era.
@@ -49,6 +49,9 @@ def get_json(url: str, api_key: str) -> dict:
         headers["X-API-Key"] = api_key
     req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=30) as resp:
+        # Returns parsed JSON objects, e.g.:
+        # - /type/{name}: {"pokemon": [{"pokemon": {"name", "url"}, "slot": ...}, ...], ...}
+        # - /pokemon/{id}: {"id","name","types","base_experience","height","weight","stats","species",...}
         return json.load(resp)
 
 
@@ -67,6 +70,7 @@ def species_id_from_pokemon_payload(payload: dict) -> int | None:
 def collect_candidate_payloads(api_key: str) -> list[dict]:
     urls: dict[str, str] = {}
     for type_name in TYPE_NAMES:
+        # Parameter used: type_name in /type/{type_name}, where type_name is "dark" or "ghost".
         payload = get_json(f"{API_BASE}/type/{type_name}", api_key) #get the payload from the API
         for item in payload.get("pokemon", []):
             poke = item.get("pokemon", {}) #get the pokemon from the payload
@@ -129,23 +133,23 @@ def print_ascii_banner(name: str) -> None:
     print(art)
     print(f"First Pokemon loaded: {name}")
 
-
+#fetch the rows from the API
 def fetch_rows(candidates: list[dict], target_count: int) -> list[dict[str, int | str]]:
     rows: list[dict[str, int | str]] = []
     printed_first = False
-    total = min(len(candidates), max(target_count, 50))
+    total = min(len(candidates), max(target_count, 50)) #get the total number of candidates
 
     for idx, payload in enumerate(candidates[:total], start=1):
         row_stats = stats_map(payload.get("stats", []))
         species_id = species_id_from_pokemon_payload(payload) or 0
         row = {
-            "id": int(payload.get("id") or 0),
-            "species_id": species_id,
-            "name": str(payload.get("name") or ""),
-            "types": normalize_types(payload.get("types", [])),
-            "base_experience": int(payload.get("base_experience") or 0),
-            "height": int(payload.get("height") or 0),
-            "weight": int(payload.get("weight") or 0),
+            "id": int(payload.get("id") or 0),  # Pokemon form ID from /pokemon/{id}.
+            "species_id": species_id,  # National species ID (used to keep Gen 1-4 species only).
+            "name": str(payload.get("name") or ""),  # Pokemon/form name (e.g., "gengar-mega").
+            "types": normalize_types(payload.get("types", [])),  # Primary/secondary type names joined by "|".
+            "base_experience": int(payload.get("base_experience") or 0),  # Base EXP yielded when defeated.
+            "height": int(payload.get("height") or 0),  # Height in decimeters.
+            "weight": int(payload.get("weight") or 0),  # Weight in hectograms.
             **row_stats,
         }
         rows.append(row)
@@ -159,7 +163,7 @@ def fetch_rows(candidates: list[dict], target_count: int) -> list[dict[str, int 
 
     return rows
 
-
+#write the rows to a CSV file
 def write_csv(path: Path, rows: list[dict[str, int | str]]) -> None:
     fields = [
         "id",
@@ -181,22 +185,22 @@ def write_csv(path: Path, rows: list[dict[str, int | str]]) -> None:
         writer.writeheader()
         writer.writerows(rows)
 
-
+#main function
 def main() -> int:
-    file_env = load_dotenv(ENV_PATH)
+    file_env = load_dotenv(ENV_PATH) #load the environment variables from the .env file
     api_key = env_var("API_KEY", file_env, "")
     target_count = int(env_var("POKEMON_TARGET_COUNT", file_env, "55") or 55)
 
-    candidates = collect_candidate_payloads(api_key)
+    candidates = collect_candidate_payloads(api_key) #collect the candidate payloads from the API
     if len(candidates) < 50:
         print(
             f"Only {len(candidates)} dark/ghost entries found with species_id <= {GEN4_MAX_ID}.",
             file=sys.stderr,
         )
         return 1
-
+    #fetch the rows from the API
     rows = fetch_rows(candidates, target_count)
-    write_csv(OUTPUT_CSV, rows)
+    write_csv(OUTPUT_CSV, rows) #write the rows to a CSV file
     print(f"\nWrote {len(rows)} rows to {OUTPUT_CSV}")
     return 0
 
