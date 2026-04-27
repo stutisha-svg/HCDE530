@@ -135,7 +135,9 @@ def main() -> None:
             )
 # Calculate the top 5 satisfaction scores
 
-    scored_rows.sort(key=lambda x: x[1])
+    # Bug fix: ascending sort returned the *lowest* 5 satisfaction scores.
+    # For "Top 5", we need highest scores first, so sort descending.
+    scored_rows.sort(key=lambda x: x[1], reverse=True)
     top5 = scored_rows[:5]
 
     print("\nTop 5 satisfaction scores:")
