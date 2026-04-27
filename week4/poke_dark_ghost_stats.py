@@ -77,19 +77,19 @@ def collect_candidate_payloads(api_key: str) -> list[dict]:
             url = str(poke.get("url") or "")
             if url:
                 urls[url] = url #add the url to the dictionary
-        time.sleep(REQUEST_PAUSE_SEC)
+        time.sleep(REQUEST_PAUSE_SEC) #sleep for the request pause seconds
 
-    out: list[dict] = []
-    for idx, url in enumerate(sorted(urls.keys()), start=1):
+    out: list[dict] = [] #empty list to store the payloads
+    for idx, url in enumerate(sorted(urls.keys()), start=1): #enumerate the urls
         payload = get_json(url, api_key) #get the payload from the API
         sid = species_id_from_pokemon_payload(payload) #get the species id from the payload
         # Platinum-era filter by species id: include forms/variants of Gen 1-4 species.
-        if sid and sid <= GEN4_MAX_ID:
+        if sid and sid <= GEN4_MAX_ID: #if the species id is less than or equal to the gen 4 max id, add the payload to the list
             out.append(payload) #add the payload to the list
-        if idx % 25 == 0:
+        if idx % 25 == 0: #if the index is divisible by 25, print the progress
             print(f"Scanned {idx}/{len(urls)} candidates...") #print the progress
-        time.sleep(REQUEST_PAUSE_SEC)
-    return out
+        time.sleep(REQUEST_PAUSE_SEC) #sleep for the request pause seconds
+    return out #return the list of payloads
 
 
 #normalize the types
@@ -99,7 +99,7 @@ def normalize_types(types_block: list[dict]) -> str:
     return "|".join([n for n in names if n])
 
 
-def stats_map(stats_block: list[dict]) -> dict[str, int]:
+def stats_map(stats_block: list[dict]) -> dict[str, int]: #
     mapped = {str(s.get("stat", {}).get("name") or ""): int(s.get("base_stat") or 0) for s in stats_block}
     return {
         # hp: total hit points (how much damage a Pokemon can absorb before fainting).
