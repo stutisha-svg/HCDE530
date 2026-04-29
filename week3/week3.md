@@ -26,6 +26,14 @@ Short interview about this week’s work in **`week3/`** (especially `week3_anal
 
 ---
 
+### 2b. The sorting bug in “Top 5 satisfaction scores”
+
+**Question:** You said the top-five output was still off at one point. What was the bug, how did you notice it, and how did you debug and fix it?
+
+**Your answer (summary):** The script was sorting satisfaction scores in **ascending** order and then taking the first five rows, which returned the **lowest** scores instead of the highest. I noticed this because the “Top 5” section looked inconsistent with expectations from the rest of the summary output. I switched into Plan mode first to reason through what the code *should* do, then carefully checked terminal output and the relevant lines around the `sort()` + slice logic. The fix was to sort in **descending** order (`reverse=True`) before slicing to five, and to add an inline comment explaining why this change was necessary so the bug is easy to spot later.
+
+---
+
 ### 3. What should a stranger read first?
 
 **Question:** If someone opened the repo next month and only read **one** thing besides the code—a commit message or a docstring—what should it say about this script?
