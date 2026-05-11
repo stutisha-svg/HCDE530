@@ -47,6 +47,10 @@ week5/reviews_mini.csv
 week5/week5.md
 week5/week5_merge_demo.ipynb
 week5/week5_pandas_demo.ipynb
+week6/chart_4a_radial_sentiment.png
+week6/chart_4b_sankey_propagation.png
+week6/chart_4c_nrc_heatmap.png
+week6/chart_4d_news_outlets.png
 week6/collect_bsky.py
 week6/enrich_bsky_news.py
 week6/enrich_bsky_threads.py
