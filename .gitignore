@@ -42,3 +42,18 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+# week6 Bluesky data files (large CSVs from collect_bsky.py / enrich_bsky_threads.py)
+week6/bsky_posts_collected.csv
+week6/bsky_posts_collected.backup.csv
+week6/bsky_posts_last_3_years.csv
+week6/bsky_posts_collect_lineage.csv
+week6/bsky_enrichment_lineage.csv
+
+# week6 large exercise datasets (>20 MB; remove these lines if you want them tracked)
+week6/bird_strikes.csv
+week6/clean_ufo_data.csv
+
+# week6 transient helper / preview artifacts (smoke tests, html previews)
+week6/_*.py
+week6/_*.html
