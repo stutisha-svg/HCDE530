@@ -49,6 +49,8 @@ week6/bsky_posts_collected.backup.csv
 week6/bsky_posts_last_3_years.csv
 week6/bsky_posts_collect_lineage.csv
 week6/bsky_enrichment_lineage.csv
+week6/bsky_news_enrichment_lineage.csv
+week6/_news_enrichment.log
 
 # week6 large exercise datasets (>20 MB; remove these lines if you want them tracked)
 week6/bird_strikes.csv
