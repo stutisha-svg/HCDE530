@@ -1,9 +1,5 @@
 # Week 6: Process
 
-## Why these questions matter
-
-Earlier this quarter, in a strategic human-centered AI class discussion, a classmate referenced a "social media just for AI bots" where bots autonomously post and talk to each other. The platform is real; the implication that ran with it (that bots are intelligent, self-aware, and starting a society of their own) is not. Conversations about AI routinely drift far from the underlying research, and they take their shape from whatever feed a person happens to read. I wanted to use this project as a reality check on how serious that gap actually is.
-
 ## Original questions and where the project went
 
 The three original misinformation-flavored questions:
@@ -79,6 +75,6 @@ I built four Plotly figures on a Bluesky AI-post corpus, enriching the dataset t
 
 **C3 (data cleaning and file handling).** The two repeatable enrichment scripts (`enrich_bsky_threads.py`, `enrich_bsky_news.py`) plus the cleaning that fell out of them (`.fillna("")` before sentiment scoring, regex filters that drop `_enrichment`, `at://`, and outlet handles from theme menus, 429 backoff and host failover in the API loops) keep the pipeline runnable on any CSV that matches the Bluesky schema. Most of those fixes only landed because I read the actual tracebacks instead of treating crashes as black boxes.
 
-**C6 (data visualization).** Each chart was matched to its data structure: a radial scatter for a continuum, a Sankey for flow with conservation, a heatmap for a theme x month x emotion matrix, and a scatter with small multiples for outlet framing. Two earlier attempts got cut for not serving the question: a VADER stacked-area chart that duplicated 4a on a weaker encoding (and had a "Jan 200 / Jan 2001" date axis bug), and a top-authors bubble chart for 4d that ranked individuals when the actual question was about outlets. Publishing as both a Jupyter notebook and standalone PNGs (`fig.write_image`, kaleido 1.x) lets the same evidence work inline on GitHub and as figures in a write-up.
+**C6 (data visualization).** Each chart was matched to its data structure: a radial scatter for a continuum, a Sankey for flow with conservation, a heatmap for a theme x month x emotion matrix, and a scatter with small multiples for outlet framing. Two earlier attempts got cut for not serving the question: a VADER stacked-area chart that duplicated 4a on a weaker encoding (and had a "Jan 2000 / Jan 2001" date axis bug), and a top-authors bubble chart for 4d that ranked individuals when the actual question was about outlets. Publishing as both a Jupyter notebook and standalone PNGs (`fig.write_image`, kaleido 1.x) lets the same evidence work inline on GitHub and as figures in a write-up.
 
 **C7 (critical evaluation and professional judgment).** The biggest call was not shipping a misinformation chart at all: a hand-coded label would not have survived scrutiny, so I used linguistic proxies (sentiment, hedging, attribution, NRC emotion) and named the limits of each next to its chart. The smaller calls were about tool-question fit (VADER for 4a and 4b, NRC for 4c, regex plus TF-IDF for 4d), about *verifying* tidiness rather than assuming it (catching `NaN` text, AT-protocol URIs, and outlet handles before they silently corrupted the charts), and about responding to sparseness (both enrichment scripts, lowering 4c's per-month threshold from 30 to 5, hiding outlet-handle "themes" from dropdowns). Each was a moment where shipping the easy version was the wrong call.
