@@ -55,6 +55,7 @@ week6/enrich_bsky_threads.py
 week6/fetch_bsky_posts_last_3_years.py
 week6/plotly-exercises.ipynb
 week6/tidy_data_exercise.ipynb
+week6/week6.md
 week6/week6_mp1_starter.ipynb
 ```
 <!-- DIRECTORY_TREE_END -->
