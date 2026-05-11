@@ -47,12 +47,8 @@ week5/reviews_mini.csv
 week5/week5.md
 week5/week5_merge_demo.ipynb
 week5/week5_pandas_demo.ipynb
-week6/bsky_ai_misinformation.csv
-week6/bsky_ai_misinformation_theme_summary.csv
-week6/bsky_post_attributes.csv
 week6/collect_bsky.py
 week6/enrich_bsky_threads.py
-week6/fetch_bsky_posts_last_3_years.py
 week6/plotly-exercises.ipynb
 week6/tidy_data_exercise.ipynb
 week6/week6.md
