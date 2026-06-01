@@ -336,17 +336,149 @@
       overflow: hidden;
     }
 
+    .buddy-card__prompt-wrap,
+    .card-flip__back-text-wrap {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .buddy-card__prompt {
       margin: 0;
       width: 100%;
+      display: block;
       text-align: center;
       font-family: var(--font-prompt);
-      font-size: var(--text-lg);
       font-weight: 700;
-      line-height: var(--leading-tight);
+      line-height: 1.12;
       color: var(--color-text);
+      overflow: visible;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+
+    /* Card flip — View 2b context on back */
+    .card-flip.buddy-card--prompt {
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      perspective: 900px;
+    }
+
+    .card-flip__inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform 550ms var(--ease-in-out);
+    }
+
+    .card-flip--flipped .card-flip__inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-flip__face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      background-color: var(--color-surface);
+      box-shadow: var(--shadow-card);
       overflow: hidden;
-      max-height: 100%;
+    }
+
+    .card-flip__back {
+      transform: rotateY(180deg);
+    }
+
+    .card-flip__face .buddy-card__body {
+      height: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      padding: 28px 12px 12px;
+      gap: var(--space-sm);
+    }
+
+    .card-flip__face .buddy-card__badge {
+      z-index: 2;
+    }
+
+    .card-flip__context-btn {
+      flex-shrink: 0;
+      width: 100%;
+      font-size: var(--text-xs);
+      padding: var(--space-xs) var(--space-sm);
+    }
+
+    .card-flip__context-btn--hidden {
+      display: none;
+    }
+
+    .card-flip__back-label {
+      margin: 0;
+      flex-shrink: 0;
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: var(--weight-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      text-align: center;
+    }
+
+    .card-flip__back-text {
+      margin: 0;
+      width: 100%;
+      display: block;
+      font-family: var(--font-ui);
+      line-height: 1.2;
+      color: var(--color-text-muted);
+      text-align: center;
+      overflow: visible;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      hyphens: auto;
+    }
+
+    .context-box {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .context-box--hidden {
+      display: none;
+    }
+
+    .context-box__title {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: 9px;
+      font-weight: var(--weight-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+    }
+
+    .context-box__text {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      line-height: var(--leading-normal);
+      color: var(--color-text-muted);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background-color: var(--color-bg);
+      padding: 6px;
+      overflow: visible;
     }
 
     .buddy-card__deck-desc {
@@ -817,6 +949,10 @@
       display: none;
     }
 
+    .view-2b--preview .view-2b__actions {
+      display: none;
+    }
+
     .view-nav {
       display: flex;
       flex-shrink: 0;
@@ -918,6 +1054,7 @@
 
     /* View 3 — Reflect */
     .view-3 {
+      position: relative;
       display: flex;
       flex-direction: column;
       padding-top: var(--space-md);
@@ -962,6 +1099,22 @@
       line-height: var(--leading-normal);
     }
 
+    .view-3__deck-indicator {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+    }
+
+    .view-3__deck-indicator--hidden {
+      display: none;
+    }
+
+    .view-3__deck-indicator .deck-indicator {
+      width: 12px;
+      height: 12px;
+    }
+
     .view-3__prompt {
       margin: 0;
       flex-shrink: 0;
@@ -969,10 +1122,6 @@
       font-weight: var(--weight-medium);
       line-height: var(--leading-relaxed);
       color: var(--color-text);
-      display: -webkit-box;
-      -webkit-line-clamp: 4;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
     }
 
     .view-3__textarea {
@@ -984,6 +1133,44 @@
     .view-3__save {
       flex-shrink: 0;
       margin-top: var(--space-sm);
+    }
+
+    .view-3__tabs {
+      position: absolute;
+      right: var(--space-lg);
+      bottom: 52px;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      z-index: 2;
+    }
+
+    .view-tab {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
+      border: 1px solid var(--color-border-strong);
+      border-radius: var(--radius-md);
+      background-color: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: background-color var(--duration-fast) var(--ease-out),
+                  border-color var(--duration-fast) var(--ease-out);
+    }
+
+    .view-tab:hover {
+      background-color: var(--color-bg);
+      border-color: var(--color-text);
+    }
+
+    .view-tab svg {
+      display: block;
+      width: 18px;
+      height: 18px;
     }
   </style>
 </head>
@@ -1111,10 +1298,26 @@
     <div class="view-2b__main">
       <div class="view-2b__body">
         <div class="view-2b__prompt-wrap">
-          <div id="drawn-card" class="buddy-card buddy-card--prompt">
-            <div id="view-2b-deck-indicator" class="buddy-card__badge" aria-hidden="true"></div>
-            <div class="buddy-card__body">
-              <p id="drawn-prompt" class="buddy-card__prompt text-prompt"></p>
+          <div id="drawn-card" class="buddy-card buddy-card--prompt card-flip">
+            <div class="card-flip__inner">
+              <div class="card-flip__face card-flip__front">
+                <div id="view-2b-deck-indicator" class="buddy-card__badge" aria-hidden="true"></div>
+                <div class="buddy-card__body">
+                  <div class="buddy-card__prompt-wrap">
+                    <p id="drawn-prompt" class="buddy-card__prompt text-prompt"></p>
+                  </div>
+                  <button type="button" id="context-flip-btn" class="btn btn-secondary card-flip__context-btn card-flip__context-btn--hidden">Context</button>
+                </div>
+              </div>
+              <div class="card-flip__face card-flip__back">
+                <div class="buddy-card__body">
+                  <p class="card-flip__back-label">Context</p>
+                  <div class="card-flip__back-text-wrap">
+                    <p id="drawn-context" class="card-flip__back-text"></p>
+                  </div>
+                  <button type="button" id="context-flip-back-btn" class="btn btn-secondary card-flip__context-btn">Prompt</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1155,8 +1358,27 @@
         <p class="view-3__earlier-label">Earlier you noted:</p>
         <p id="view-3-earlier-text" class="view-3__earlier-text text-muted"></p>
       </div>
+      <div id="view-3-deck-indicator" class="view-3__deck-indicator view-3__deck-indicator--hidden" aria-hidden="true"></div>
       <p id="view-3-prompt" class="view-3__prompt"></p>
+      <div id="view-3-context-wrap" class="context-box context-box--hidden">
+        <p class="context-box__title">Context</p>
+        <p id="view-3-context" class="context-box__text"></p>
+      </div>
       <textarea id="view-3-response" class="textarea-reflection view-3__textarea" placeholder="Write your reflection…"></textarea>
+    </div>
+    <div class="view-3__tabs">
+      <button type="button" id="view-3-tab-frame" class="view-tab" aria-label="View anchor frame">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="4" y="4" width="16" height="16" rx="1"/>
+          <path d="M4 9h16"/>
+        </svg>
+      </button>
+      <button type="button" id="view-3-tab-card" class="view-tab" aria-label="View drawn card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="5" y="3" width="14" height="18" rx="2"/>
+          <path d="M9 8h6M9 12h4"/>
+        </svg>
+      </button>
     </div>
     <button type="button" id="view-3-save" class="btn btn-primary btn-full view-3__save" disabled>Save reflection</button>
   </div>
@@ -1170,6 +1392,10 @@
   <script>
     const LOADING_DURATION = 1500;
     const MAX_REDRAWS = 2;
+    const CARD_PROMPT_FONT_MAX = 28;
+    const CARD_PROMPT_FONT_MIN = 8;
+    const CARD_CONTEXT_FONT_MAX = 11;
+    const CARD_CONTEXT_FONT_MIN = 7;
     const MAIN_DECKS = ['Inspiration', 'Connections', 'Interfacing'];
 
     const loadingScreen = document.getElementById('loading-screen');
@@ -1181,9 +1407,14 @@
     const view3Anchor = document.getElementById('view-3-anchor');
     const view3Earlier = document.getElementById('view-3-earlier');
     const view3EarlierText = document.getElementById('view-3-earlier-text');
+    const view3DeckIndicator = document.getElementById('view-3-deck-indicator');
     const view3Prompt = document.getElementById('view-3-prompt');
+    const view3ContextWrap = document.getElementById('view-3-context-wrap');
+    const view3Context = document.getElementById('view-3-context');
     const view3Response = document.getElementById('view-3-response');
     const view3Save = document.getElementById('view-3-save');
+    const view3TabFrame = document.getElementById('view-3-tab-frame');
+    const view3TabCard = document.getElementById('view-3-tab-card');
     const view1Pick = document.getElementById('view-1-pick');
     const view1Selected = document.getElementById('view-1-selected');
     const framePreviewFallback = document.getElementById('frame-preview-fallback');
@@ -1197,6 +1428,9 @@
     const deckThreadBtn = document.getElementById('deck-thread');
     const surpriseBtn = document.getElementById('surprise-btn');
     const drawnPromptEl = document.getElementById('drawn-prompt');
+    const drawnContextEl = document.getElementById('drawn-context');
+    const contextFlipBtn = document.getElementById('context-flip-btn');
+    const contextFlipBackBtn = document.getElementById('context-flip-back-btn');
     const drawnCard = document.getElementById('drawn-card');
     const redrawBtn = document.getElementById('redraw-btn');
     const surprise2bBtn = document.getElementById('surprise-2b-btn');
@@ -1225,6 +1459,8 @@
     let activeDeck = null;
     let redrawCount = 0;
     let view2bLocked = false;
+    let view2bPreviewMode = false;
+    let view3ReturnMode = false;
     let pendingHelperText = null;
     let lastReflectionExcerpt = null;
 
@@ -1316,13 +1552,149 @@
         icon + '<span class="buddy-card__badge-label">' + label + '</span>';
     }
 
+    function updateContextDisplay(wrapEl, textEl, text) {
+      const value = text && String(text).trim();
+      if (value) {
+        wrapEl.classList.remove('context-box--hidden');
+        textEl.textContent = value;
+      } else {
+        wrapEl.classList.add('context-box--hidden');
+        textEl.textContent = '';
+      }
+    }
+
+    function setCardFlipped(flipped) {
+      drawnCard.classList.toggle('card-flip--flipped', flipped);
+      scheduleCardTextFit();
+    }
+
+    function fitTextInContainer(textEl, containerEl, maxPx, minPx, lineHeight) {
+      if (!textEl || !containerEl) return;
+      if (!textEl.textContent.trim()) return;
+
+      const lh = lineHeight || 1.15;
+      textEl.style.lineHeight = String(lh);
+      let size = maxPx;
+      textEl.style.fontSize = size + 'px';
+
+      const maxHeight = containerEl.clientHeight;
+      if (maxHeight <= 0) return;
+
+      while (size > minPx && textEl.scrollHeight > maxHeight + 1) {
+        size -= 1;
+        textEl.style.fontSize = size + 'px';
+      }
+    }
+
+    function scheduleCardTextFit() {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const promptWrap = drawnPromptEl.parentElement;
+          const contextWrap = drawnContextEl.parentElement;
+          fitTextInContainer(
+            drawnPromptEl,
+            promptWrap,
+            CARD_PROMPT_FONT_MAX,
+            CARD_PROMPT_FONT_MIN,
+            1.12
+          );
+          if (drawnContextEl.textContent.trim()) {
+            fitTextInContainer(
+              drawnContextEl,
+              contextWrap,
+              CARD_CONTEXT_FONT_MAX,
+              CARD_CONTEXT_FONT_MIN,
+              1.2
+            );
+          }
+        });
+      });
+    }
+
+    function updateCardContextUI() {
+      const value = appState.helperText && String(appState.helperText).trim();
+      if (value) {
+        drawnContextEl.textContent = value;
+        contextFlipBtn.classList.remove('card-flip__context-btn--hidden');
+      } else {
+        drawnContextEl.textContent = '';
+        contextFlipBtn.classList.add('card-flip__context-btn--hidden');
+        setCardFlipped(false);
+      }
+      scheduleCardTextFit();
+    }
+
+    function renderView3DeckIndicator() {
+      const deckKey = deckKeyFromAppState();
+      if (!deckKey) {
+        view3DeckIndicator.classList.add('view-3__deck-indicator--hidden');
+        view3DeckIndicator.innerHTML = '';
+        return;
+      }
+      const label = DECK_LABELS[deckKey] || deckKey;
+      const icon = DECK_INDICATORS[deckKey] || '';
+      view3DeckIndicator.innerHTML =
+        icon + '<span class="buddy-card__badge-label">' + label + '</span>';
+      view3DeckIndicator.classList.remove('view-3__deck-indicator--hidden');
+    }
+
+    function deckKeyFromAppState() {
+      if (appState.deck === 'thread') return 'thread';
+      if (!appState.deck) return activeDeck;
+      return appState.deck.charAt(0).toUpperCase() + appState.deck.slice(1);
+    }
+
+    function renderView2bFromState() {
+      const deckKey = deckKeyFromAppState() || activeDeck;
+      if (deckKey) updateDeckIndicator(deckKey);
+      drawnPromptEl.textContent = appState.prompt || '';
+      updateCardContextUI();
+      scheduleCardTextFit();
+    }
+
     function updateView2bControls() {
+      if (view2bPreviewMode) {
+        redrawBtn.classList.add('view-2b__redraw--hidden');
+        surprise2bBtn.classList.add('view-2b__redraw--hidden');
+        view2bBack.classList.add('view-2b__redraw--hidden');
+        return;
+      }
+
       const hideRedraw = view2bLocked || redrawCount >= MAX_REDRAWS;
       const hideSurpriseAndBack = view2bLocked;
 
       redrawBtn.classList.toggle('view-2b__redraw--hidden', hideRedraw);
       surprise2bBtn.classList.toggle('view-2b__redraw--hidden', hideSurpriseAndBack);
       view2bBack.classList.toggle('view-2b__redraw--hidden', hideSurpriseAndBack);
+    }
+
+    function openView1FromView3() {
+      view3ReturnMode = true;
+      hideView(view3);
+      showView(view1);
+      if (anchorCommitted) {
+        showSelectedState();
+      } else {
+        showPickState();
+      }
+      view1Next.disabled = false;
+    }
+
+    function openView2bPreviewFromView3() {
+      view2bPreviewMode = true;
+      view2b.classList.add('view-2b--preview');
+      hideView(view3);
+      showView(view2b);
+      updateView2bControls();
+      renderView2bFromState();
+    }
+
+    function exitView2bPreview() {
+      view2bPreviewMode = false;
+      view2b.classList.remove('view-2b--preview');
+      hideView(view2b);
+      showView(view3);
+      renderView3();
     }
 
     function playCardAnimation() {
@@ -1332,6 +1704,7 @@
         void drawnCard.offsetWidth;
         drawnCard.classList.remove('buddy-card--hidden');
         drawnCard.classList.add('buddy-card--animate');
+        scheduleCardTextFit();
       });
     }
 
@@ -1369,6 +1742,8 @@
 
       if (!prompts) {
         drawnPromptEl.textContent = 'Unable to load prompts. Reload the plugin.';
+        appState.helperText = null;
+        updateCardContextUI();
         updateDeckIndicator(activeDeck);
         playCardAnimation();
         return;
@@ -1385,8 +1760,11 @@
         pendingHelperText = entry.helper_text;
       }
 
+      appState.helperText = pendingHelperText;
       updateDeckIndicator(activeDeck);
       drawnPromptEl.textContent = question;
+      setCardFlipped(false);
+      updateCardContextUI();
       playCardAnimation();
       updateView2bControls();
     }
@@ -1396,6 +1774,9 @@
       activeDeck = selectedDeck;
       redrawCount = 0;
       view2bLocked = false;
+      view2bPreviewMode = false;
+      view2b.classList.remove('view-2b--preview');
+      setCardFlipped(false);
       updateView2bControls();
       drawnCard.classList.add('buddy-card--hidden');
       drawnPromptEl.textContent = '';
@@ -1440,7 +1821,9 @@
         (appState.anchor && appState.anchor.value) ||
         '';
       view3Anchor.textContent = anchorLabel;
+      renderView3DeckIndicator();
       view3Prompt.textContent = appState.prompt || '';
+      updateContextDisplay(view3ContextWrap, view3Context, appState.helperText);
 
       if (lastReflectionExcerpt) {
         view3Earlier.classList.remove('view-3__earlier--hidden');
@@ -1549,6 +1932,26 @@
     };
 
     view1Next.addEventListener('click', () => {
+      if (view3ReturnMode) {
+        view3ReturnMode = false;
+        const anchorValue = anchorTitle.trim() || (selection ? selection.name : '');
+        if (anchorValue) {
+          appState.anchorTitle = anchorValue;
+          if (appState.anchor) {
+            appState.anchor.value = anchorValue;
+            if (selection) {
+              appState.anchor.figmaName = selection.name;
+              appState.anchor.figmaType = selection.type;
+            }
+          }
+        }
+        hideView(view1);
+        showView(view3);
+        renderView3();
+        updateNavState();
+        return;
+      }
+
       if (!anchorCommitted) return;
       const anchorValue = anchorTitle.trim() || (selection ? selection.name : '');
       if (!anchorValue) return;
@@ -1581,6 +1984,10 @@
     surprise2bBtn.addEventListener('click', surpriseMe2b);
 
     view2bNext.addEventListener('click', () => {
+      if (view2bPreviewMode) {
+        exitView2bPreview();
+        return;
+      }
       if (!activeDeck) return;
       appState.deck = activeDeck === 'thread' ? 'thread' : activeDeck.toLowerCase();
       appState.prompt = drawnPromptEl.textContent;
@@ -1589,6 +1996,12 @@
       showView(view3);
       renderView3();
     });
+
+    contextFlipBtn.addEventListener('click', () => setCardFlipped(true));
+    contextFlipBackBtn.addEventListener('click', () => setCardFlipped(false));
+
+    view3TabFrame.addEventListener('click', openView1FromView3);
+    view3TabCard.addEventListener('click', openView2bPreviewFromView3);
 
     view3Response.addEventListener('input', updateView3SaveState);
     view3Save.addEventListener('click', saveReflection);
