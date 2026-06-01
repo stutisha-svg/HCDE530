@@ -180,7 +180,27 @@ If any task seems to require modifying these files, stop and ask first.
 
 ---
 
-## 12. Plugin size and layout (fixed)
+## 12. Icons — Material 3 (Material Symbols)
+
+All UI icons must use **Google Material Symbols** (Material 3 style), not custom strokes
+or legacy Material Icons 24px paths.
+
+- **Source:** [Material Symbols](https://fonts.google.com/icons) — **Outlined** only.
+- **Delivery:** Load `Material Symbols Outlined` from Google Fonts in `ui.html` and use
+  ligatures via `<span class="material-symbols-outlined m3-icon">icon_name</span>`.
+  Define names once in `M3_ICON` in `ui.html` — do not hand-draw SVG paths.
+- **Rename / edit actions:** use the **`stylus`** icon (pencil only). Do **not** use
+  `edit` — that glyph is a pencil on a document and is wrong for rename buttons.
+- **Size:** 16px via `.material-symbols-outlined.m3-icon` (`opsz` 24).
+- **Accessibility:** `aria-hidden="true"` on the span; `aria-label` on the parent
+  `<button>`.
+
+When adding a new icon, add its ligature name to the Google Fonts `icon_names` list in
+`ui.html`, then add it to `M3_ICON`.
+
+---
+
+## 13. Plugin size and layout (fixed)
 
 The plugin panel is **360 × 480px** (set in `code.js`). Do not change panel dimensions.
 
@@ -216,7 +236,7 @@ View 2: deck grid **248px** wide (2×120 + 8 gap); Surprise me button matches th
 
 ---
 
-## 13. Build order
+## 14. Build order
 
 Follow this order. Do not skip ahead.
 
@@ -240,7 +260,7 @@ Full build milestone (June 6): All features working end to end.
 
 ---
 
-## 14. When to stop and ask vs. when to proceed
+## 15. When to stop and ask vs. when to proceed
 
 Proceed without asking:
 - Writing code that is fully specified in the brief

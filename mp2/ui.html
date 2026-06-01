@@ -5,6 +5,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=delete,download,stylus&display=block" rel="stylesheet">
   <style>
     :root {
       /* Font families */
@@ -1307,9 +1308,6 @@
       width: 100%;
       text-align: left;
       cursor: pointer;
-      border: none;
-      background-color: var(--color-text);
-      color: var(--color-bg);
       transition: opacity var(--duration-fast) var(--ease-out);
     }
 
@@ -1317,40 +1315,20 @@
       opacity: 0.9;
     }
 
-    .log-entry--start-new .log-entry__meta,
-    .log-entry--start-new .log-entry__anchor,
-    .log-entry--start-new .log-entry__start-label {
-      color: var(--color-bg);
-    }
-
-    .log-entry--start-new .log-entry__deck {
-      color: var(--color-bg);
-      opacity: 0.85;
-    }
-
-    .log-entry--start-new .deck-indicator svg polygon,
-    .log-entry--start-new .deck-indicator svg rect,
-    .log-entry--start-new .deck-indicator svg circle {
-      opacity: 0.95;
-    }
-
-    .log-entry__start-label {
-      margin: 0 0 var(--space-xs);
-      font-size: var(--text-sm);
-      font-weight: var(--weight-semibold);
-      line-height: var(--leading-tight);
-    }
-
-    .log-entry__start-desc {
-      margin: 0;
-      font-size: var(--text-xs);
-      opacity: 0.8;
-      line-height: var(--leading-normal);
-    }
-
     .log-entry--document {
       border-style: dashed;
       background-color: var(--color-bg);
+    }
+
+    .log-entry--document .log-entry__meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .log-entry--document .log-entry__date {
+      flex: 1;
+      min-width: 0;
     }
 
     .log-entry__doc-preview {
@@ -1367,16 +1345,6 @@
 
     .log-entry__doc-preview--visible {
       display: block;
-    }
-
-    .log-entry__doc-actions {
-      display: flex;
-      gap: var(--space-sm);
-      margin-top: var(--space-sm);
-    }
-
-    .log-entry__doc-actions .btn {
-      flex: 1;
     }
 
     .log-entry__delete {
@@ -1400,12 +1368,6 @@
     .log-entry__delete:hover {
       color: var(--color-text);
       border-color: var(--color-border-strong);
-    }
-
-    .log-entry__delete svg {
-      display: block;
-      width: 14px;
-      height: 14px;
     }
 
     .log-entry__select-mark {
@@ -1514,6 +1476,24 @@
       word-break: break-word;
     }
 
+    .log-entry.log-entry--start-new {
+      font-family: var(--font-ui);
+      background-color: var(--color-btn-primary-bg);
+      border-color: var(--color-btn-primary-bg);
+      color: var(--color-btn-primary-text);
+    }
+
+    .log-entry.log-entry--start-new .log-entry__date,
+    .log-entry.log-entry--start-new .log-entry__deck,
+    .log-entry.log-entry--start-new .log-entry__anchor,
+    .log-entry.log-entry--start-new .log-entry__response {
+      color: var(--color-btn-primary-text);
+    }
+
+    .log-entry.log-entry--start-new .log-entry__response {
+      opacity: 0.85;
+    }
+
     .view-3__tabs {
       position: absolute;
       right: var(--space-lg);
@@ -1550,6 +1530,323 @@
       display: block;
       width: 18px;
       height: 18px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-lg);
+    }
+
+    .modal--hidden {
+      display: none;
+    }
+
+    .modal__backdrop {
+      position: absolute;
+      inset: 0;
+      background-color: rgba(26, 26, 26, 0.4);
+    }
+
+    .modal__panel {
+      position: relative;
+      width: 100%;
+      max-width: 280px;
+      padding: var(--space-lg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background-color: var(--color-surface);
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal__title {
+      margin: 0 0 var(--space-sm);
+      font-family: var(--font-ui);
+      font-size: var(--text-md);
+      font-weight: var(--weight-semibold);
+      line-height: var(--leading-tight);
+      color: var(--color-text);
+    }
+
+    .modal__message {
+      margin: 0 0 var(--space-lg);
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+    }
+
+    .modal__actions {
+      display: flex;
+      gap: var(--space-sm);
+    }
+
+    .modal__actions .btn {
+      flex: 1;
+    }
+
+    .modal__panel--tall {
+      max-height: calc(100% - 32px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .modal__scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      margin: 0 0 var(--space-md);
+    }
+
+    .modal__list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      margin: 0 0 var(--space-md);
+    }
+
+    .modal__list-item {
+      display: block;
+      width: 100%;
+      padding: var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      text-align: left;
+      color: var(--color-text);
+      cursor: pointer;
+      transition: border-color var(--duration-fast) var(--ease-out),
+                  background-color var(--duration-fast) var(--ease-out);
+    }
+
+    .modal__list-item:hover {
+      border-color: var(--color-border-strong);
+      background: var(--color-bg);
+    }
+
+    .modal__list-item--empty {
+      padding: var(--space-md);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      text-align: center;
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-md);
+    }
+
+    .modal__field {
+      width: 100%;
+      margin: 0 0 var(--space-md);
+      padding: var(--space-sm) var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      color: var(--color-text);
+      background: var(--color-surface);
+    }
+
+    .modal__field:focus {
+      outline: none;
+      border-color: var(--color-border-strong);
+    }
+
+    .btn--action-dark {
+      background-color: var(--color-btn-primary-bg);
+      color: var(--color-btn-primary-text);
+      border: 1px solid var(--color-btn-primary-bg);
+    }
+
+    .btn--action-dark:hover:not(:disabled) {
+      opacity: 0.9;
+    }
+
+    .view-5__tabs {
+      display: flex;
+      gap: var(--space-xs);
+      flex-shrink: 0;
+      margin-bottom: var(--space-sm);
+      padding: 3px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg);
+    }
+
+    .view-5__tab {
+      flex: 1;
+      margin: 0;
+      padding: var(--space-sm) var(--space-md);
+      border: none;
+      border-radius: calc(var(--radius-md) - 2px);
+      background: transparent;
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: background-color var(--duration-fast) var(--ease-out),
+                  color var(--duration-fast) var(--ease-out);
+    }
+
+    .view-5__tab--active {
+      background: var(--color-surface);
+      color: var(--color-text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .view-5__footer--hidden {
+      display: none;
+    }
+
+    .log-entry__icon-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+
+    .log-entry__icon-btn:hover {
+      color: var(--color-text);
+      border-color: var(--color-border-strong);
+    }
+
+    .material-symbols-outlined.m3-icon {
+      display: block;
+      width: 16px;
+      height: 16px;
+      font-size: 16px;
+      line-height: 1;
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    .log-entry__doc-title-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      max-width: 100%;
+      margin: 0 0 var(--space-xs);
+    }
+
+    .log-entry__doc-title {
+      flex: 0 1 auto;
+      min-width: 0;
+      margin: 0;
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      line-height: var(--leading-tight);
+      color: var(--color-text);
+    }
+
+    .log-entry__doc-title-row .log-entry__icon-btn {
+      flex-shrink: 0;
+    }
+
+    .log-entry__doc-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-top: var(--space-xs);
+    }
+
+    .log-entry__doc-actions-secondary {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      gap: var(--space-xs);
+    }
+
+    .log-entry__doc-actions-secondary .btn {
+      flex: 1;
+      min-width: 0;
+      padding: 6px var(--space-sm);
+      font-size: var(--text-xs);
+      white-space: nowrap;
+    }
+
+    .log-entry__icon-btn--primary {
+      background-color: var(--color-btn-primary-bg);
+      color: var(--color-btn-primary-text);
+      border-color: var(--color-btn-primary-bg);
+    }
+
+    .log-entry__icon-btn--primary:hover {
+      opacity: 0.9;
+      color: var(--color-btn-primary-text);
+      border-color: var(--color-btn-primary-bg);
+    }
+
+    .preview-entry {
+      padding-bottom: var(--space-md);
+      margin-bottom: var(--space-md);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .preview-entry:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .preview-entry__frame {
+      width: 100%;
+      max-height: 100px;
+      margin: 0 0 var(--space-sm);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--color-border);
+      object-fit: cover;
+      object-position: top center;
+      background: var(--color-bg);
+    }
+
+    .preview-entry__frame-placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 72px;
+      margin: 0 0 var(--space-sm);
+      border: 1px dashed var(--color-border);
+      border-radius: var(--radius-sm);
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+    }
+
+    .preview-entry__label {
+      margin: 0 0 2px;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-medium);
+      color: var(--color-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .preview-entry__text {
+      margin: 0 0 var(--space-sm);
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+      color: var(--color-text);
+      word-break: break-word;
+    }
+
+    .preview-entry__prompt {
+      font-family: var(--font-prompt);
+      font-size: var(--text-lg);
+      line-height: var(--leading-tight);
     }
   </style>
 </head>
@@ -1789,9 +2086,14 @@
         <span class="view-5__nav-spacer" aria-hidden="true"></span>
       </nav>
     </div>
-    <p id="view-5-empty" class="view-5__empty view-5__empty--hidden text-muted">No reflections yet.</p>
+    <div class="view-5__tabs" role="tablist" aria-label="Log sections">
+      <button type="button" id="view-5-tab-reflections" class="view-5__tab view-5__tab--active" role="tab" aria-selected="true">Reflections</button>
+      <button type="button" id="view-5-tab-documents" class="view-5__tab" role="tab" aria-selected="false">Documents</button>
+    </div>
+    <p id="view-5-empty-reflections" class="view-5__empty view-5__empty--hidden text-muted">No reflections yet.</p>
+    <p id="view-5-empty-documents" class="view-5__empty view-5__empty--hidden text-muted">No documents yet.</p>
     <div id="view-5-list" class="view-5__list" role="list"></div>
-    <div class="view-5__footer">
+    <div id="view-5-footer" class="view-5__footer">
       <button type="button" id="view-5-compile-toggle" class="btn btn-secondary btn-full">Compile document</button>
       <button type="button" id="view-5-compile-confirm" class="btn btn-primary btn-full view-5__compile-confirm view-5__compile-confirm--hidden">Compile selected</button>
     </div>
@@ -1800,6 +2102,61 @@
   <div id="view-6" class="view view--hidden">
     <div class="view-stub">
       <p class="text-muted">Document — Step 9</p>
+    </div>
+  </div>
+
+  <div id="delete-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-hidden="true">
+    <div id="delete-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
+    <div class="modal__panel">
+      <p id="delete-modal-title" class="modal__title">Delete?</p>
+      <p id="delete-modal-message" class="modal__message text-muted">Are you sure? This cannot be undone.</p>
+      <div class="modal__actions">
+        <button type="button" id="delete-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="delete-modal-confirm" class="btn btn-primary">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="compile-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="compile-modal-title" aria-hidden="true">
+    <div id="compile-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
+    <div class="modal__panel modal__panel--tall">
+      <p id="compile-modal-title" class="modal__title">Add to document</p>
+      <p class="modal__message text-muted">Choose an existing document or create a new one.</p>
+      <div id="compile-modal-list" class="modal__list"></div>
+      <button type="button" id="compile-modal-new" class="btn btn-full btn--action-dark">Add to new document</button>
+    </div>
+  </div>
+
+  <div id="preview-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title" aria-hidden="true">
+    <div id="preview-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
+    <div class="modal__panel modal__panel--tall">
+      <p id="preview-modal-title" class="modal__title">Document preview</p>
+      <div id="preview-modal-body" class="modal__scroll"></div>
+      <button type="button" id="preview-modal-close" class="btn btn-secondary btn-full">Close</button>
+    </div>
+  </div>
+
+  <div id="rename-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="rename-modal-title" aria-hidden="true">
+    <div id="rename-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
+    <div class="modal__panel">
+      <p id="rename-modal-title" class="modal__title">Rename document</p>
+      <input type="text" id="rename-modal-input" class="modal__field" maxlength="120" />
+      <div class="modal__actions">
+        <button type="button" id="rename-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="rename-modal-save" class="btn btn-primary">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="restore-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="restore-modal-title" aria-hidden="true">
+    <div id="restore-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
+    <div class="modal__panel">
+      <p id="restore-modal-title" class="modal__title">Break into reflections?</p>
+      <p class="modal__message text-muted">This will move all entries back to the Reflections tab and remove this document.</p>
+      <div class="modal__actions">
+        <button type="button" id="restore-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="restore-modal-confirm" class="btn btn-primary">Break apart</button>
+      </div>
     </div>
   </div>
 
@@ -1812,6 +2169,16 @@
     const CARD_CONTEXT_FONT_MIN = 7;
     const MAIN_DECKS = ['Inspiration', 'Connections', 'Interfacing'];
 
+    /* Material Symbols Outlined via Google Fonts — rename uses stylus (pencil only), not edit */
+    const M3_ICON = {
+      edit:
+        '<span class="material-symbols-outlined m3-icon" aria-hidden="true">stylus</span>',
+      delete:
+        '<span class="material-symbols-outlined m3-icon" aria-hidden="true">delete</span>',
+      download:
+        '<span class="material-symbols-outlined m3-icon" aria-hidden="true">download</span>'
+    };
+
     const loadingScreen = document.getElementById('loading-screen');
     const view1 = document.getElementById('view-1');
     const view2 = document.getElementById('view-2');
@@ -1823,10 +2190,38 @@
     const view4Log = document.getElementById('view-4-log');
     const view4Continue = document.getElementById('view-4-continue');
     const view5Back = document.getElementById('view-5-back');
-    const view5Empty = document.getElementById('view-5-empty');
+    const view5TabReflections = document.getElementById('view-5-tab-reflections');
+    const view5TabDocuments = document.getElementById('view-5-tab-documents');
+    const view5EmptyReflections = document.getElementById('view-5-empty-reflections');
+    const view5EmptyDocuments = document.getElementById('view-5-empty-documents');
     const view5List = document.getElementById('view-5-list');
+    const view5Footer = document.getElementById('view-5-footer');
     const view5CompileToggle = document.getElementById('view-5-compile-toggle');
     const view5CompileConfirm = document.getElementById('view-5-compile-confirm');
+    const compileModal = document.getElementById('compile-modal');
+    const compileModalBackdrop = document.getElementById('compile-modal-backdrop');
+    const compileModalList = document.getElementById('compile-modal-list');
+    const compileModalNew = document.getElementById('compile-modal-new');
+    const previewModal = document.getElementById('preview-modal');
+    const previewModalBackdrop = document.getElementById('preview-modal-backdrop');
+    const previewModalTitle = document.getElementById('preview-modal-title');
+    const previewModalBody = document.getElementById('preview-modal-body');
+    const previewModalClose = document.getElementById('preview-modal-close');
+    const renameModal = document.getElementById('rename-modal');
+    const renameModalBackdrop = document.getElementById('rename-modal-backdrop');
+    const renameModalInput = document.getElementById('rename-modal-input');
+    const renameModalCancel = document.getElementById('rename-modal-cancel');
+    const renameModalSave = document.getElementById('rename-modal-save');
+    const restoreModal = document.getElementById('restore-modal');
+    const restoreModalBackdrop = document.getElementById('restore-modal-backdrop');
+    const restoreModalCancel = document.getElementById('restore-modal-cancel');
+    const restoreModalConfirm = document.getElementById('restore-modal-confirm');
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteModalBackdrop = document.getElementById('delete-modal-backdrop');
+    const deleteModalCancel = document.getElementById('delete-modal-cancel');
+    const deleteModalConfirm = document.getElementById('delete-modal-confirm');
+    const deleteModalTitle = document.getElementById('delete-modal-title');
+    const deleteModalMessage = document.getElementById('delete-modal-message');
     const view3Anchor = document.getElementById('view-3-anchor');
     const view3Earlier = document.getElementById('view-3-earlier');
     const view3EarlierText = document.getElementById('view-3-earlier-text');
@@ -1884,6 +2279,12 @@
     let documents = [];
     let compileMode = false;
     let compileSelectedIds = new Set();
+    let view5ActiveTab = 'reflections';
+    let pendingCompileReflections = [];
+    let pendingDeleteKind = null;
+    let pendingDeleteId = null;
+    let pendingRenameDocumentId = null;
+    let pendingRestoreDocumentId = null;
     let preselectedDeck = null;
     let selection = null;
     let anchorTitle = '';
@@ -2098,28 +2499,249 @@
       renderLog();
     }
 
-    function persistCompiledDocument(markdown, reflectionIds) {
-      const doc = {
-        id:
-          typeof crypto !== 'undefined' && crypto.randomUUID
-            ? crypto.randomUUID()
-            : String(Date.now()) + '-doc-' + Math.random().toString(36).slice(2, 8),
-        date: new Date().toISOString().slice(0, 10),
-        createdAt: new Date().toISOString(),
-        reflectionIds: reflectionIds.slice(),
-        reflectionCount: reflectionIds.length,
-        markdown
+    function newDocumentId() {
+      return typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + '-doc-' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function defaultDocumentName() {
+      return (
+        'Document — ' +
+        new Date().toLocaleDateString(undefined, {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        })
+      );
+    }
+
+    function cloneReflection(entry) {
+      return JSON.parse(JSON.stringify(entry));
+    }
+
+    function getDocumentReflections(doc) {
+      if (Array.isArray(doc.reflections) && doc.reflections.length) {
+        return doc.reflections;
+      }
+      return [];
+    }
+
+    function getDocumentReflectionCount(doc) {
+      const refs = getDocumentReflections(doc);
+      if (refs.length) return refs.length;
+      return doc.reflectionCount || 0;
+    }
+
+    function buildDocumentObject(reflectionEntries, name) {
+      const copies = reflectionEntries.map(cloneReflection);
+      const now = new Date().toISOString();
+      return {
+        id: newDocumentId(),
+        name: name || defaultDocumentName(),
+        date: now.slice(0, 10),
+        createdAt: now,
+        updatedAt: now,
+        reflections: copies,
+        reflectionCount: copies.length,
+        markdown: compileReflectionsMarkdown(copies)
       };
+    }
+
+    function sendCompileReflections(payload) {
+      parent.postMessage({ pluginMessage: payload }, '*');
+    }
+
+    function finishCompileFlow() {
+      exitCompileMode();
+      closeCompileModal();
+      setView5Tab('documents');
+    }
+
+    function compileToNewDocument(entries) {
+      const doc = buildDocumentObject(entries);
+      sendCompileReflections({
+        type: 'compile-reflections',
+        mode: 'new',
+        document: doc,
+        reflections: entries.map(cloneReflection)
+      });
+      finishCompileFlow();
+    }
+
+    function compileToExistingDocument(documentId, entries) {
+      const doc = documents.find((d) => d.id === documentId);
+      if (!doc) return;
+      const merged = getDocumentReflections(doc).concat(entries.map(cloneReflection));
+      sendCompileReflections({
+        type: 'compile-reflections',
+        mode: 'append',
+        documentId,
+        reflections: entries.map(cloneReflection),
+        markdown: compileReflectionsMarkdown(merged)
+      });
+      finishCompileFlow();
+    }
+
+    function openCompileModal(entries) {
+      pendingCompileReflections = entries;
+      compileModalList.innerHTML = '';
+      if (documents.length === 0) {
+        const empty = document.createElement('p');
+        empty.className = 'modal__list-item--empty';
+        empty.textContent = 'No documents yet.';
+        compileModalList.appendChild(empty);
+      } else {
+        documents.forEach((doc) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'modal__list-item';
+          const count = getDocumentReflectionCount(doc);
+          btn.textContent =
+            (doc.name || defaultDocumentName()) +
+            ' (' +
+            count +
+            ' reflection' +
+            (count === 1 ? '' : 's') +
+            ')';
+          btn.addEventListener('click', () => {
+            compileToExistingDocument(doc.id, pendingCompileReflections);
+          });
+          compileModalList.appendChild(btn);
+        });
+      }
+      compileModal.classList.remove('modal--hidden');
+      compileModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeCompileModal() {
+      pendingCompileReflections = [];
+      compileModal.classList.add('modal--hidden');
+      compileModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function restoreDocument(documentId) {
       parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'save-compiled-document',
-            document: doc,
-            reflectionIds
-          }
-        },
+        { pluginMessage: { type: 'restore-document', documentId } },
         '*'
       );
+    }
+
+    function updateDocumentName(documentId, name) {
+      parent.postMessage(
+        { pluginMessage: { type: 'update-document', documentId, name } },
+        '*'
+      );
+    }
+
+    function openRenameModal(documentId, currentName) {
+      pendingRenameDocumentId = documentId;
+      renameModalInput.value = currentName || '';
+      renameModal.classList.remove('modal--hidden');
+      renameModal.setAttribute('aria-hidden', 'false');
+      renameModalInput.focus();
+      renameModalInput.select();
+    }
+
+    function closeRenameModal() {
+      pendingRenameDocumentId = null;
+      renameModal.classList.add('modal--hidden');
+      renameModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function openRestoreModal(documentId) {
+      pendingRestoreDocumentId = documentId;
+      restoreModal.classList.remove('modal--hidden');
+      restoreModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeRestoreModal() {
+      pendingRestoreDocumentId = null;
+      restoreModal.classList.add('modal--hidden');
+      restoreModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function appendPreviewField(parent, label, text, extraClass) {
+      const labelEl = document.createElement('p');
+      labelEl.className = 'preview-entry__label';
+      labelEl.textContent = label;
+      const textEl = document.createElement('p');
+      textEl.className = 'preview-entry__text' + (extraClass ? ' ' + extraClass : '');
+      textEl.textContent = text;
+      parent.appendChild(labelEl);
+      parent.appendChild(textEl);
+    }
+
+    function openPreviewModal(doc) {
+      const refs = getDocumentReflections(doc);
+      previewModalTitle.textContent = doc.name || defaultDocumentName();
+      previewModalBody.innerHTML = '';
+
+      if (!refs.length && doc.markdown) {
+        const legacy = document.createElement('pre');
+        legacy.style.cssText =
+          'margin:0;font-family:var(--font-ui);font-size:var(--text-xs);line-height:var(--leading-normal);white-space:pre-wrap;word-break:break-word;color:var(--color-text-muted);';
+        legacy.textContent = doc.markdown;
+        previewModalBody.appendChild(legacy);
+      } else if (!refs.length) {
+        const empty = document.createElement('p');
+        empty.className = 'text-muted';
+        empty.style.fontSize = 'var(--text-sm)';
+        empty.textContent = 'No reflection data stored for this document.';
+        previewModalBody.appendChild(empty);
+      } else {
+        refs.forEach((entry) => {
+          const deckKey = DECK_KEY_FROM_STORED[entry.deck] || 'Inspiration';
+          const deckLabel = DECK_LABELS[deckKey] || entry.deck;
+          const anchorLabel =
+            (entry.anchor && entry.anchor.value) || 'Untitled anchor';
+          const block = document.createElement('article');
+          block.className = 'preview-entry';
+
+          if (entry.anchorImage) {
+            const img = document.createElement('img');
+            img.className = 'preview-entry__frame';
+            img.src = 'data:image/png;base64,' + entry.anchorImage;
+            img.alt = anchorLabel;
+            block.appendChild(img);
+          } else if (entry.anchor && entry.anchor.type === 'frame') {
+            const ph = document.createElement('div');
+            ph.className = 'preview-entry__frame-placeholder';
+            ph.textContent = 'Frame preview not saved';
+            block.appendChild(ph);
+          }
+
+          appendPreviewField(block, 'Anchor', anchorLabel);
+          appendPreviewField(block, 'Deck', deckLabel);
+          appendPreviewField(block, 'Prompt', entry.prompt || '', 'preview-entry__prompt');
+          if (entry.helperText) {
+            appendPreviewField(block, 'Context', entry.helperText);
+          }
+          appendPreviewField(block, 'Reflection', entry.response || '');
+          previewModalBody.appendChild(block);
+        });
+      }
+
+      previewModal.classList.remove('modal--hidden');
+      previewModal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closePreviewModal() {
+      previewModal.classList.add('modal--hidden');
+      previewModal.setAttribute('aria-hidden', 'true');
+      previewModalBody.innerHTML = '';
+    }
+
+    function setView5Tab(tab) {
+      view5ActiveTab = tab;
+      const isReflections = tab === 'reflections';
+      view5TabReflections.classList.toggle('view-5__tab--active', isReflections);
+      view5TabDocuments.classList.toggle('view-5__tab--active', !isReflections);
+      view5TabReflections.setAttribute('aria-selected', isReflections ? 'true' : 'false');
+      view5TabDocuments.setAttribute('aria-selected', !isReflections ? 'true' : 'false');
+      view5Footer.classList.toggle('view-5__footer--hidden', !isReflections);
+      if (!isReflections && compileMode) exitCompileMode();
+      renderLog();
     }
 
     function deleteReflection(id) {
@@ -2127,6 +2749,48 @@
         { pluginMessage: { type: 'delete-reflection', id } },
         '*'
       );
+    }
+
+    function deleteDocument(documentId) {
+      parent.postMessage(
+        { pluginMessage: { type: 'delete-document', documentId } },
+        '*'
+      );
+    }
+
+    function openDeleteModal(kind, id) {
+      pendingDeleteKind = kind;
+      pendingDeleteId = id;
+      if (kind === 'document') {
+        deleteModalTitle.textContent = 'Delete document?';
+        deleteModalMessage.textContent =
+          'Are you sure? The compiled reflections in this document will be permanently removed.';
+      } else {
+        deleteModalTitle.textContent = 'Delete reflection?';
+        deleteModalMessage.textContent = 'Are you sure? This cannot be undone.';
+      }
+      deleteModal.classList.remove('modal--hidden');
+      deleteModal.setAttribute('aria-hidden', 'false');
+      deleteModalConfirm.focus();
+    }
+
+    function closeDeleteModal() {
+      pendingDeleteKind = null;
+      pendingDeleteId = null;
+      deleteModal.classList.add('modal--hidden');
+      deleteModal.setAttribute('aria-hidden', 'true');
+    }
+
+    function confirmDelete() {
+      if (!pendingDeleteKind || !pendingDeleteId) return;
+      const kind = pendingDeleteKind;
+      const id = pendingDeleteId;
+      closeDeleteModal();
+      if (kind === 'document') {
+        deleteDocument(id);
+      } else {
+        deleteReflection(id);
+      }
     }
 
     function buildStartNewCard() {
@@ -2137,13 +2801,14 @@
       btn.type = 'button';
       btn.className = 'log-entry log-entry--start-new';
       btn.setAttribute('role', 'listitem');
+      btn.dataset.deck = deckKey;
       btn.innerHTML =
         '<div class="log-entry__meta">' +
           '<p class="log-entry__date">Suggested deck</p>' +
           '<p class="log-entry__deck">' + deckIcon + deckLabel + '</p>' +
         '</div>' +
-        '<p class="log-entry__start-label">Start new reflection</p>' +
-        '<p class="log-entry__start-desc">Least-used deck from your history — tap to draw a prompt.</p>';
+        '<p class="log-entry__anchor">Start new reflection</p>' +
+        '<p class="log-entry__response">Least-used deck from your history — tap to draw a prompt.</p>';
       btn.addEventListener('click', startNewReflectionFromLog);
       return btn;
     }
@@ -2169,9 +2834,7 @@
           '<p class="log-entry__date">' + formatLogDate(entry.date) + '</p>' +
           '<p class="log-entry__deck">' + deckIcon + deckLabel + '</p>' +
           '<button type="button" class="log-entry__delete" aria-label="Delete reflection">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
-              '<path d="M18 6L6 18M6 6l12 12"/>' +
-            '</svg>' +
+            M3_ICON.delete +
           '</button>' +
         '</div>' +
         '<p class="log-entry__anchor"></p>' +
@@ -2195,7 +2858,7 @@
         .querySelector('.log-entry__delete')
         .addEventListener('click', (event) => {
           event.stopPropagation();
-          deleteReflection(entry.id);
+          openDeleteModal('reflection', entry.id);
         });
 
       return article;
@@ -2207,63 +2870,81 @@
       article.setAttribute('role', 'listitem');
       article.dataset.documentId = doc.id;
 
-      const countLabel =
-        (doc.reflectionCount || (doc.reflectionIds && doc.reflectionIds.length) || 0) +
-        ' reflection' +
-        ((doc.reflectionCount || 0) === 1 ? '' : 's');
+      const count = getDocumentReflectionCount(doc);
+      const docName = doc.name || defaultDocumentName();
 
       article.innerHTML =
         '<div class="log-entry__meta">' +
           '<p class="log-entry__date">' + formatLogDate(doc.date) + '</p>' +
           '<p class="log-entry__deck">Document</p>' +
+          '<button type="button" class="log-entry__delete" aria-label="Delete document">' +
+            M3_ICON.delete +
+          '</button>' +
         '</div>' +
-        '<p class="log-entry__anchor">Compiled ' + countLabel + '</p>' +
-        '<button type="button" class="log-entry__prompt-toggle" aria-expanded="false">Preview document</button>' +
-        '<p class="log-entry__doc-preview"></p>' +
+        '<div class="log-entry__doc-title-row">' +
+          '<p class="log-entry__doc-title"></p>' +
+          '<button type="button" class="log-entry__icon-btn log-entry__doc-edit" aria-label="Rename document">' +
+            M3_ICON.edit +
+          '</button>' +
+        '</div>' +
+        '<p class="log-entry__response text-muted"></p>' +
         '<div class="log-entry__doc-actions">' +
-          '<button type="button" class="btn btn-secondary log-entry__doc-download">Download .md</button>' +
+          '<div class="log-entry__doc-actions-secondary">' +
+            '<button type="button" class="btn btn-secondary log-entry__doc-preview-btn">Preview</button>' +
+            '<button type="button" class="btn btn-secondary log-entry__doc-restore">Break apart</button>' +
+          '</div>' +
+          '<button type="button" class="log-entry__icon-btn log-entry__icon-btn--primary log-entry__doc-download" aria-label="Download markdown">' +
+            M3_ICON.download +
+          '</button>' +
         '</div>';
 
-      const preview = article.querySelector('.log-entry__doc-preview');
-      preview.textContent = doc.markdown || '';
+      article.querySelector('.log-entry__doc-title').textContent = docName;
+      article.querySelector('.log-entry__response').textContent =
+        count + ' reflection' + (count === 1 ? '' : 's');
 
-      const filename =
-        'design-buddy-reflections-' + doc.date + '.md';
+      article.querySelector('.log-entry__delete').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDeleteModal('document', doc.id);
+      });
+      article.querySelector('.log-entry__doc-edit').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openRenameModal(doc.id, docName);
+      });
+      article.querySelector('.log-entry__doc-preview-btn').addEventListener('click', () => {
+        openPreviewModal(doc);
+      });
+      const restoreBtn = article.querySelector('.log-entry__doc-restore');
+      if (!getDocumentReflections(doc).length) {
+        restoreBtn.disabled = true;
+      } else {
+        restoreBtn.addEventListener('click', () => {
+          openRestoreModal(doc.id);
+        });
+      }
       article
         .querySelector('.log-entry__doc-download')
         .addEventListener('click', () => {
-          downloadMarkdown(doc.markdown || '', filename);
+          const slug = (doc.name || 'document')
+            .replace(/[^\w\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .toLowerCase();
+          downloadMarkdown(
+            doc.markdown || compileReflectionsMarkdown(getDocumentReflections(doc)),
+            'design-buddy-' + (slug || 'document') + '-' + doc.date + '.md'
+          );
         });
 
       return article;
     }
 
-    function getHistoryTimeline() {
-      const items = [];
-      reflections.forEach((entry, index) => {
-        const rank = String(reflections.length - index).padStart(6, '0');
-        items.push({
-          kind: 'reflection',
-          sortKey: (entry.date || '') + '-r' + rank,
-          entry
-        });
-      });
-      documents.forEach((doc, index) => {
-        const rank = String(documents.length - index).padStart(6, '0');
-        const timeKey = doc.createdAt || doc.date + 'T12:00:00';
-        items.push({
-          kind: 'document',
-          sortKey: timeKey + '-d' + rank,
-          entry: doc
-        });
-      });
-      items.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
-      return items;
-    }
-
-    function startNewReflectionFromLog() {
+    function startNewReflectionFromLog(event) {
       if (compileMode) return;
-      preselectedDeck = getExclusiveDeck();
+      const card = event.currentTarget;
+      preselectedDeck = card.dataset.deck || getExclusiveDeck();
+      appState.deck = null;
+      appState.prompt = null;
+      appState.helperText = null;
       appState.response = '';
       view3Response.value = '';
       hideView(view5);
@@ -2271,11 +2952,11 @@
     }
 
     function continueReflectingFromSaved() {
-      appState.response = '';
-      view3Response.value = '';
       hideView(view4);
       showView(view3);
+      view3Response.value = appState.response || '';
       renderView3();
+      updateView3SaveState();
     }
 
     function requestReflectionsFromPlugin() {
@@ -2287,6 +2968,10 @@
         (appState.anchor && appState.anchor.value) ||
         appState.anchorTitle ||
         '';
+      const anchorImage =
+        (selection && selection.image) ||
+        (appState.anchor && appState.anchor.image) ||
+        null;
       return {
         id:
           typeof crypto !== 'undefined' && crypto.randomUUID
@@ -2296,9 +2981,12 @@
         anchor: appState.anchor
           ? {
               type: appState.anchor.type || 'frame',
-              value: anchorValue
+              value: anchorValue,
+              figmaName: appState.anchor.figmaName || null,
+              figmaType: appState.anchor.figmaType || null
             }
           : { type: 'text', value: anchorValue },
+        anchorImage,
         deck: appState.deck || 'inspiration',
         prompt: appState.prompt || '',
         response: appState.response || '',
@@ -2308,29 +2996,36 @@
 
     function renderLog() {
       view5List.innerHTML = '';
-      view5List.appendChild(buildStartNewCard());
 
-      const hasHistory = reflections.length > 0 || documents.length > 0;
-      if (!hasHistory) {
-        view5Empty.classList.remove('view-5__empty--hidden');
-      } else {
-        view5Empty.classList.add('view-5__empty--hidden');
+      if (view5ActiveTab === 'reflections') {
+        view5List.appendChild(buildStartNewCard());
+        if (reflections.length === 0) {
+          view5EmptyReflections.classList.remove('view-5__empty--hidden');
+        } else {
+          view5EmptyReflections.classList.add('view-5__empty--hidden');
+          reflections.forEach((entry) => {
+            view5List.appendChild(buildReflectionLogEntry(entry));
+          });
+        }
+        view5EmptyDocuments.classList.add('view-5__empty--hidden');
+        updateCompileConfirmState();
+        return;
       }
 
-      getHistoryTimeline().forEach((item) => {
-        if (item.kind === 'reflection') {
-          view5List.appendChild(buildReflectionLogEntry(item.entry));
-        } else {
-          view5List.appendChild(buildDocumentLogEntry(item.entry));
-        }
-      });
-
-      updateCompileConfirmState();
+      view5EmptyReflections.classList.add('view-5__empty--hidden');
+      if (documents.length === 0) {
+        view5EmptyDocuments.classList.remove('view-5__empty--hidden');
+      } else {
+        view5EmptyDocuments.classList.add('view-5__empty--hidden');
+        documents.forEach((doc) => {
+          view5List.appendChild(buildDocumentLogEntry(doc));
+        });
+      }
     }
 
     function openView5Log() {
       exitCompileMode();
-      renderLog();
+      setView5Tab('reflections');
       hideView(view4);
       showView(view5);
     }
@@ -2635,8 +3330,10 @@
       drawPrompt();
     }
 
-    function initView2() {
-      clearDeckSelection();
+    function initView2(preserveDeckSelection) {
+      if (!preserveDeckSelection) {
+        clearDeckSelection();
+      }
       activeDeck = null;
       redrawCount = 0;
       view2bLocked = false;
@@ -2813,7 +3510,8 @@
         type: 'frame',
         value: anchorValue,
         figmaName: selection ? selection.name : anchorValue,
-        figmaType: selection ? selection.type : null
+        figmaType: selection ? selection.type : null,
+        image: selection && selection.image ? selection.image : null
       };
       appState.anchorTitle = anchorValue;
       hideView(view1);
@@ -2821,7 +3519,7 @@
       if (preselectedDeck) {
         selectedDeck = preselectedDeck;
         preselectedDeck = null;
-        initView2();
+        initView2(true);
         goToView2b();
         return;
       }
@@ -2887,34 +3585,60 @@
       enterCompileMode();
     });
 
+    view5TabReflections.addEventListener('click', () => setView5Tab('reflections'));
+    view5TabDocuments.addEventListener('click', () => setView5Tab('documents'));
+
     view5CompileConfirm.addEventListener('click', () => {
       if (!compileMode || compileSelectedIds.size === 0) return;
       const selected = reflections.filter((r) => compileSelectedIds.has(r.id));
-      const markdown = compileReflectionsMarkdown(selected);
-      const ids = selected.map((r) => r.id);
-      persistCompiledDocument(markdown, ids);
-      exitCompileMode();
+      openCompileModal(selected);
     });
+
+    compileModalNew.addEventListener('click', () => {
+      if (!pendingCompileReflections.length) return;
+      compileToNewDocument(pendingCompileReflections);
+    });
+
+    compileModalBackdrop.addEventListener('click', closeCompileModal);
 
     view5List.addEventListener('click', (event) => {
       const toggle = event.target.closest('.log-entry__prompt-toggle');
       if (!toggle) return;
       const entry = toggle.closest('.log-entry');
-      if (!entry) return;
-
-      if (entry.classList.contains('log-entry--document')) {
-        const previewEl = entry.querySelector('.log-entry__doc-preview');
-        const expanded = previewEl.classList.toggle('log-entry__doc-preview--visible');
-        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        toggle.textContent = expanded ? 'Hide preview' : 'Preview document';
-        return;
-      }
+      if (!entry || entry.classList.contains('log-entry--document')) return;
 
       const promptEl = entry.querySelector('.log-entry__prompt');
       const expanded = promptEl.classList.toggle('log-entry__prompt--visible');
       toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       toggle.textContent = expanded ? 'Hide prompt' : 'Show prompt';
     });
+
+    previewModalClose.addEventListener('click', closePreviewModal);
+    previewModalBackdrop.addEventListener('click', closePreviewModal);
+
+    renameModalCancel.addEventListener('click', closeRenameModal);
+    renameModalBackdrop.addEventListener('click', closeRenameModal);
+    renameModalSave.addEventListener('click', () => {
+      if (!pendingRenameDocumentId) return;
+      const name = renameModalInput.value.trim();
+      if (!name) return;
+      updateDocumentName(pendingRenameDocumentId, name);
+      closeRenameModal();
+    });
+
+    restoreModalCancel.addEventListener('click', closeRestoreModal);
+    restoreModalBackdrop.addEventListener('click', closeRestoreModal);
+    restoreModalConfirm.addEventListener('click', () => {
+      if (!pendingRestoreDocumentId) return;
+      const id = pendingRestoreDocumentId;
+      closeRestoreModal();
+      restoreDocument(id);
+      setView5Tab('reflections');
+    });
+
+    deleteModalCancel.addEventListener('click', closeDeleteModal);
+    deleteModalConfirm.addEventListener('click', confirmDelete);
+    deleteModalBackdrop.addEventListener('click', closeDeleteModal);
 
   </script>
 </body>

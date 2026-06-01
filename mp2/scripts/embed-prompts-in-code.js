@@ -69,17 +69,67 @@ figma.ui.onmessage = async (msg) => {
     await postHistoryToUI();
   }
 
-  if (msg.type === "save-compiled-document") {
-    const doc = msg.document;
-    const reflectionIds = Array.isArray(msg.reflectionIds) ? msg.reflectionIds : [];
-    if (!doc || reflectionIds.length === 0) return;
+  if (msg.type === "compile-reflections") {
+    const reflectionsToMove = Array.isArray(msg.reflections) ? msg.reflections : [];
+    if (reflectionsToMove.length === 0) return;
+    const idSet = new Set(reflectionsToMove.map((r) => r.id));
     const existing = await loadReflections();
-    const idSet = new Set(reflectionIds);
     const nextReflections = existing.filter((r) => !idSet.has(r.id));
     await saveReflections(nextReflections);
     const docs = await loadDocuments();
-    docs.unshift(doc);
+
+    if (msg.mode === "append" && msg.documentId) {
+      const doc = docs.find((d) => d.id === msg.documentId);
+      if (doc) {
+        if (!Array.isArray(doc.reflections)) doc.reflections = [];
+        doc.reflections.push(...reflectionsToMove);
+        doc.markdown = msg.markdown || doc.markdown;
+        doc.updatedAt = new Date().toISOString();
+        doc.reflectionCount = doc.reflections.length;
+      }
+    } else if (msg.document) {
+      docs.unshift(msg.document);
+    }
+
     await saveDocuments(docs);
+    await postHistoryToUI();
+  }
+
+  if (msg.type === "restore-document") {
+    const documentId = msg.documentId;
+    if (!documentId) return;
+    const docs = await loadDocuments();
+    const index = docs.findIndex((d) => d.id === documentId);
+    if (index === -1) return;
+    const doc = docs[index];
+    const restored = Array.isArray(doc.reflections) ? doc.reflections : [];
+    const existing = await loadReflections();
+    existing.unshift(...restored);
+    docs.splice(index, 1);
+    await saveReflections(existing);
+    await saveDocuments(docs);
+    await postHistoryToUI();
+  }
+
+  if (msg.type === "update-document") {
+    const documentId = msg.documentId;
+    const name = typeof msg.name === "string" ? msg.name.trim() : "";
+    if (!documentId || !name) return;
+    const docs = await loadDocuments();
+    const doc = docs.find((d) => d.id === documentId);
+    if (!doc) return;
+    doc.name = name;
+    doc.updatedAt = new Date().toISOString();
+    await saveDocuments(docs);
+    await postHistoryToUI();
+  }
+
+  if (msg.type === "delete-document") {
+    const documentId = msg.documentId;
+    if (!documentId) return;
+    const docs = await loadDocuments();
+    const next = docs.filter((d) => d.id !== documentId);
+    await saveDocuments(next);
     await postHistoryToUI();
   }
 
