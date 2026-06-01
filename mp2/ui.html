@@ -1771,6 +1771,15 @@
       }
     }
 
+    function setReflections(data) {
+      reflections = Array.isArray(data) ? data.slice() : [];
+      updateReflectionDerivedState();
+    }
+
+    function requestReflectionsFromPlugin() {
+      parent.postMessage({ pluginMessage: { type: 'get-reflections' } }, '*');
+    }
+
     function buildReflectionEntry() {
       const anchorValue =
         (appState.anchor && appState.anchor.value) ||
@@ -2178,8 +2187,10 @@
       const response = view3Response.value.trim();
       if (!response) return;
       appState.response = response;
-      reflections.unshift(buildReflectionEntry());
-      updateReflectionDerivedState();
+      parent.postMessage(
+        { pluginMessage: { type: 'save-reflection', data: buildReflectionEntry() } },
+        '*'
+      );
       hideView(view3);
       showView(view4);
     }
@@ -2240,6 +2251,7 @@
     }
 
     requestPromptsFromPlugin();
+    requestReflectionsFromPlugin();
 
     setTimeout(() => {
       loadingScreen.classList.add('loading-screen--done');
@@ -2261,6 +2273,15 @@
 
       if (msg.type === 'prompts-loaded' && msg.data) {
         prompts = msg.data;
+        return;
+      }
+
+      if (msg.type === 'reflections-loaded') {
+        setReflections(msg.data);
+        return;
+      }
+
+      if (msg.type === 'save-success') {
         return;
       }
 
@@ -2372,7 +2393,6 @@
       showView(view6);
     });
 
-    updateReflectionDerivedState();
   </script>
 </body>
 </html>

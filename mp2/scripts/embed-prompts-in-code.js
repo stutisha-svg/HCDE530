@@ -7,12 +7,42 @@ const prompts = JSON.parse(fs.readFileSync(path.join(root, 'prompts.json'), 'utf
 const code = `figma.showUI(__html__, { width: 360, height: 480, title: "Design Buddy" });
 
 const PROMPTS_DATA = ${JSON.stringify(prompts)};
+const REFLECTIONS_KEY = "reflections";
+
+async function loadReflections() {
+  const data = await figma.clientStorage.getAsync(REFLECTIONS_KEY);
+  return Array.isArray(data) ? data : [];
+}
+
+async function saveReflections(reflections) {
+  await figma.clientStorage.setAsync(REFLECTIONS_KEY, reflections);
+}
+
+async function postReflectionsToUI() {
+  const data = await loadReflections();
+  figma.ui.postMessage({ type: "reflections-loaded", data });
+}
 
 figma.ui.postMessage({ type: "prompts-loaded", data: PROMPTS_DATA });
+postReflectionsToUI();
 
 figma.ui.onmessage = async (msg) => {
   if (msg.type === "get-prompts") {
     figma.ui.postMessage({ type: "prompts-loaded", data: PROMPTS_DATA });
+  }
+
+  if (msg.type === "get-reflections") {
+    await postReflectionsToUI();
+  }
+
+  if (msg.type === "save-reflection") {
+    const entry = msg.data;
+    if (!entry) return;
+    const existing = await loadReflections();
+    existing.unshift(entry);
+    await saveReflections(existing);
+    figma.ui.postMessage({ type: "reflections-loaded", data: existing });
+    figma.ui.postMessage({ type: "save-success" });
   }
 
   if (msg.type === "close") {
