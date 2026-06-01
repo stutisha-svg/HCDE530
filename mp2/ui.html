@@ -1201,6 +1201,55 @@
       flex-shrink: 0;
     }
 
+    /* View 6 — Export full log */
+    .view-6 {
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-md) var(--space-lg);
+      overflow: hidden;
+    }
+
+    .view-6__nav {
+      flex-shrink: 0;
+      margin-bottom: var(--space-md);
+      height: 40px;
+    }
+
+    .view-6__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-lg);
+      min-height: 0;
+      text-align: center;
+    }
+
+    .view-6__desc {
+      margin: 0;
+      max-width: 280px;
+      font-size: var(--text-sm);
+      line-height: var(--leading-relaxed);
+      color: var(--color-text-muted);
+    }
+
+    .view-6__actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      width: 100%;
+      max-width: 280px;
+      flex-shrink: 0;
+    }
+
+    .view-6__notion-label {
+      display: block;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin-top: 2px;
+    }
+
     /* View 5 — Log */
     .view-5 {
       display: flex;
@@ -2064,6 +2113,7 @@
       <p class="view-4__message">Saved. See you tomorrow.</p>
       <div class="view-4__actions">
         <button type="button" id="view-4-log" class="btn btn-secondary btn-full">See all reflections</button>
+        <button type="button" id="view-4-export" class="btn btn-secondary btn-full">Export full log</button>
       </div>
       <button type="button" id="view-4-continue" class="view-4__text-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -2099,9 +2149,25 @@
     </div>
   </div>
 
-  <div id="view-6" class="view view--hidden">
-    <div class="view-stub">
-      <p class="text-muted">Document — Step 9</p>
+  <div id="view-6" class="view view-6 view--hidden">
+    <nav class="view-nav view-6__nav" aria-label="Export navigation">
+      <button type="button" id="view-6-back" class="nav-round-btn nav-round-btn--secondary" aria-label="Back to saved screen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5M11 18l-6-6 6-6"/>
+        </svg>
+      </button>
+      <span class="view-5__nav-spacer" aria-hidden="true"></span>
+      <span class="view-5__nav-spacer" aria-hidden="true"></span>
+    </nav>
+    <div class="view-6__body">
+      <p class="view-6__desc">A structured reflection document from all your saved entries, grouped by deck.</p>
+      <div class="view-6__actions">
+        <button type="button" id="view-6-download" class="btn btn-primary btn-full">Download .md file</button>
+        <button type="button" id="view-6-notion" class="btn btn-secondary btn-full" disabled>
+          Connect Notion
+          <span class="view-6__notion-label">Coming soon</span>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -2188,7 +2254,10 @@
     const view5 = document.getElementById('view-5');
     const view6 = document.getElementById('view-6');
     const view4Log = document.getElementById('view-4-log');
+    const view4Export = document.getElementById('view-4-export');
     const view4Continue = document.getElementById('view-4-continue');
+    const view6Back = document.getElementById('view-6-back');
+    const view6Download = document.getElementById('view-6-download');
     const view5Back = document.getElementById('view-5-back');
     const view5TabReflections = document.getElementById('view-5-tab-reflections');
     const view5TabDocuments = document.getElementById('view-5-tab-documents');
@@ -2464,6 +2533,38 @@
       link.download = filename;
       link.click();
       URL.revokeObjectURL(url);
+    }
+
+    function getThreadPromptText() {
+      const templates = prompts && prompts.thread;
+      if (!templates || !templates.length) {
+        return 'What thread connects your work today?';
+      }
+      const template = randomItem(templates);
+      const excerpt =
+        lastReflectionExcerpt ||
+        (reflections.length > 0
+          ? firstSentence(reflections[0].response)
+          : 'your earlier note');
+      return template.replace(/\{past_excerpt\}/g, excerpt);
+    }
+
+    function downloadFullReflectionLog() {
+      if (reflections.length === 0) return;
+      const md = compileReflectionsMarkdown(reflections);
+      const date = new Date().toISOString().slice(0, 10);
+      downloadMarkdown(md, 'design-buddy-reflections-' + date + '.md');
+    }
+
+    function openView6Export() {
+      hideView(view4);
+      showView(view6);
+      view6Download.disabled = reflections.length === 0;
+    }
+
+    function closeView6Export() {
+      hideView(view6);
+      showView(view4);
     }
 
     function exitCompileMode() {
@@ -3281,7 +3382,7 @@
       pendingHelperText = null;
 
       if (activeDeck === 'thread') {
-        question = randomItem(prompts.thread);
+        question = getThreadPromptText();
       } else {
         const entry = randomItem(prompts[activeDeck]);
         question = entry.question;
@@ -3568,7 +3669,11 @@
     view3Save.addEventListener('click', saveReflection);
 
     view4Log.addEventListener('click', openView5Log);
+    view4Export.addEventListener('click', openView6Export);
     view4Continue.addEventListener('click', continueReflectingFromSaved);
+
+    view6Back.addEventListener('click', closeView6Export);
+    view6Download.addEventListener('click', downloadFullReflectionLog);
 
     view5Back.addEventListener('click', () => {
       exitCompileMode();
