@@ -140,6 +140,50 @@
       line-height: var(--leading-normal);
       color: var(--color-text);
     }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      line-height: var(--leading-normal);
+      padding: var(--space-sm) var(--space-lg);
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background-color var(--duration-fast) var(--ease-out),
+                  color var(--duration-fast) var(--ease-out),
+                  opacity var(--duration-fast) var(--ease-out);
+    }
+
+    .btn-primary {
+      background-color: var(--color-btn-primary-bg);
+      color: var(--color-btn-primary-text);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      opacity: 0.85;
+    }
+
+    .btn-secondary {
+      background-color: var(--color-btn-secondary-bg);
+      color: var(--color-btn-secondary-text);
+      border: 1px solid var(--color-border-strong);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background-color: var(--color-surface);
+    }
+
+    .btn:disabled {
+      background-color: var(--color-btn-disabled-bg);
+      color: var(--color-btn-disabled-text);
+      border-color: transparent;
+      cursor: not-allowed;
+      opacity: 1;
+    }
   </style>
 </head>
 <body>
