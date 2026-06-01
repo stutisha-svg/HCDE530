@@ -33,6 +33,15 @@
       --deck-thread: #C86E3A;
       --deck-indicator-size: 11px;
 
+      /* Buddy card — shared portrait ratio (120×170); scaled sizes per view */
+      --buddy-card-ratio: 120 / 170;
+      --buddy-card-deck-w: 120px;
+      --buddy-card-deck-h: 170px;
+      --buddy-card-prompt-w: 216px;
+      --buddy-card-prompt-h: 306px;
+      --deck-grid-gap: var(--space-sm);
+      --deck-grid-w: calc(var(--buddy-card-deck-w) * 2 + var(--deck-grid-gap));
+
       /* Spacing */
       --space-xs: 4px;
       --space-sm: 8px;
@@ -186,6 +195,20 @@
       opacity: 1;
     }
 
+    .btn-full {
+      width: 100%;
+    }
+
+    .btn-with-icon {
+      gap: var(--space-sm);
+    }
+
+    .btn-with-icon svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
     .textarea-reflection {
       display: block;
       width: 100%;
@@ -212,28 +235,129 @@
       border-bottom-color: var(--color-border-strong);
     }
 
-    .card {
+    /* Buddy card — base component (fixed ratio on every variant) */
+    .buddy-card {
+      position: relative;
+      box-sizing: border-box;
+      width: var(--buddy-card-deck-w);
+      height: var(--buddy-card-deck-h);
+      aspect-ratio: var(--buddy-card-ratio);
+      flex-shrink: 0;
+      overflow: hidden;
       background-color: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-card);
-      padding: var(--space-lg);
     }
 
-    .card-deck {
-      padding: var(--space-md);
+    .buddy-card--deck {
+      width: var(--buddy-card-deck-w);
+      height: var(--buddy-card-deck-h);
+      min-width: var(--buddy-card-deck-w);
+      min-height: var(--buddy-card-deck-h);
+      max-width: var(--buddy-card-deck-w);
+      max-height: var(--buddy-card-deck-h);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: stretch;
+      text-align: left;
+      font: inherit;
       cursor: pointer;
       transition: box-shadow var(--duration-normal) var(--ease-out),
-                  border-color var(--duration-normal) var(--ease-out);
+                  border-color var(--duration-normal) var(--ease-out),
+                  transform var(--duration-fast) var(--ease-out);
     }
 
-    .card-deck:hover {
+    .buddy-card--deck:hover {
       border-color: var(--color-border-strong);
       box-shadow: var(--shadow-md);
     }
 
-    .card-prompt {
-      padding: var(--space-xl);
+    .buddy-card--prompt {
+      width: var(--buddy-card-prompt-w);
+      height: var(--buddy-card-prompt-h);
+      min-width: var(--buddy-card-prompt-w);
+      min-height: var(--buddy-card-prompt-h);
+      max-width: var(--buddy-card-prompt-w);
+      max-height: var(--buddy-card-prompt-h);
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+    }
+
+    .buddy-card__badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      max-width: calc(100% - 20px);
+    }
+
+    .buddy-card__badge .deck-indicator {
+      width: 12px;
+      height: 12px;
+    }
+
+    .buddy-card__badge-label {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: 10px;
+      font-weight: var(--weight-medium);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .buddy-card__body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      padding: 28px 14px 14px;
+      overflow: hidden;
+    }
+
+    .buddy-card--deck .buddy-card__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .buddy-card__prompt {
+      margin: 0;
+      width: 100%;
+      text-align: center;
+      font-family: var(--font-prompt);
+      font-size: var(--text-lg);
+      font-weight: 700;
+      line-height: var(--leading-tight);
+      color: var(--color-text);
+      overflow: hidden;
+      max-height: 100%;
+    }
+
+    .buddy-card__deck-desc {
+      margin: 4px 0 0;
+      font-size: 9px;
+      line-height: 1.25;
+      color: var(--color-text-muted);
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .deck-label {
@@ -286,7 +410,7 @@
     }
 
     .view--hidden {
-      display: none;
+      display: none !important;
     }
 
     /* Loading screen */
@@ -363,6 +487,7 @@
       flex-direction: column;
       gap: var(--space-md);
       min-height: 0;
+      padding-bottom: var(--space-2xl);
     }
 
     .view-1__heading {
@@ -527,6 +652,227 @@
       color: var(--color-text);
     }
 
+    /* View 2 — Draw (deck pick) */
+    .view-2,
+    .view-2b {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .view-2.view {
+      padding-top: var(--space-md);
+      padding-bottom: var(--space-md);
+    }
+
+    .view-2b.view {
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-md) var(--space-lg);
+    }
+
+    .view-2__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .view-2b__main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      width: 100%;
+    }
+
+    .view-2b__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .view-2__heading {
+      margin: 0 0 var(--space-md);
+      flex-shrink: 0;
+      width: var(--deck-grid-w);
+      font-size: var(--text-md);
+      font-weight: var(--weight-semibold);
+      line-height: var(--leading-tight);
+      text-align: center;
+    }
+
+    .view-2__stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-md);
+      flex-shrink: 0;
+    }
+
+    .deck-grid-panel {
+      padding: var(--space-sm);
+      border-radius: var(--radius-lg);
+    }
+
+    .deck-grid {
+      display: grid;
+      grid-template-columns: var(--buddy-card-deck-w) var(--buddy-card-deck-w);
+      grid-template-rows: var(--buddy-card-deck-h) var(--buddy-card-deck-h);
+      gap: var(--deck-grid-gap);
+      width: var(--deck-grid-w);
+      flex-shrink: 0;
+    }
+
+    .buddy-card--deck .deck-label {
+      font-size: 11px;
+      line-height: 1.2;
+    }
+
+    @keyframes deckPick {
+      0% {
+        transform: scale(1);
+      }
+      45% {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-md);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .buddy-card--picking {
+      animation: deckPick 420ms var(--ease-out);
+    }
+
+    .buddy-card--selected {
+      border-color: var(--color-text);
+      background-color: var(--color-surface);
+      box-shadow: var(--shadow-md);
+    }
+
+    .buddy-card--locked {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .buddy-card--locked .buddy-card__deck-desc {
+      color: var(--color-text-subtle);
+    }
+
+    .view-2__surprise {
+      width: var(--deck-grid-w);
+      flex-shrink: 0;
+    }
+
+    /* View 2b — drawn prompt */
+    .view-2b__prompt-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    @keyframes cardDraw {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.94) rotate(-1deg);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1) rotate(0deg);
+      }
+    }
+
+    .buddy-card--prompt.buddy-card--animate {
+      animation: cardDraw 550ms var(--ease-out) forwards;
+    }
+
+    .buddy-card--prompt.buddy-card--hidden {
+      opacity: 0;
+      transform: translateY(12px) scale(0.96);
+    }
+
+    .view-2b__actions {
+      display: flex;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+      width: 100%;
+    }
+
+    .view-2b__actions .btn {
+      flex: 1;
+    }
+
+    .view-2b__redraw--hidden {
+      display: none;
+    }
+
+    .view-nav {
+      display: flex;
+      flex-shrink: 0;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      height: 44px;
+      margin-top: var(--space-sm);
+    }
+
+    .nav-round-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid var(--color-border-strong);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: opacity var(--duration-fast) var(--ease-out),
+                  background-color var(--duration-fast) var(--ease-out);
+    }
+
+    .nav-round-btn--primary {
+      background-color: var(--color-btn-primary-bg);
+      color: var(--color-btn-primary-text);
+      border-color: var(--color-border-strong);
+    }
+
+    .nav-round-btn--primary:hover:not(:disabled) {
+      opacity: 0.85;
+    }
+
+    .nav-round-btn--secondary {
+      background-color: var(--color-surface);
+      color: var(--color-text);
+    }
+
+    .nav-round-btn--secondary:hover {
+      background-color: var(--color-bg);
+    }
+
+    .nav-round-btn:disabled {
+      background-color: var(--color-btn-disabled-bg);
+      color: var(--color-btn-disabled-text);
+      border-color: transparent;
+      cursor: not-allowed;
+    }
+
+    .nav-round-btn svg {
+      display: block;
+      width: 18px;
+      height: 18px;
+    }
+
     .nav-arrow {
       position: absolute;
       right: var(--space-lg);
@@ -568,6 +914,76 @@
       align-items: center;
       justify-content: center;
       height: 100%;
+    }
+
+    /* View 3 — Reflect */
+    .view-3 {
+      display: flex;
+      flex-direction: column;
+      padding-top: var(--space-md);
+      padding-bottom: var(--space-md);
+    }
+
+    .view-3__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .view-3__anchor {
+      margin: 0;
+      flex-shrink: 0;
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+    }
+
+    .view-3__earlier--hidden {
+      display: none;
+    }
+
+    .view-3__earlier {
+      flex-shrink: 0;
+      padding-bottom: var(--space-xs);
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .view-3__earlier-label {
+      margin: 0 0 var(--space-xs);
+      font-size: var(--text-xs);
+      font-style: italic;
+    }
+
+    .view-3__earlier-text {
+      margin: 0;
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+    }
+
+    .view-3__prompt {
+      margin: 0;
+      flex-shrink: 0;
+      font-size: var(--text-md);
+      font-weight: var(--weight-medium);
+      line-height: var(--leading-relaxed);
+      color: var(--color-text);
+      display: -webkit-box;
+      -webkit-line-clamp: 4;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .view-3__textarea {
+      flex: 1;
+      min-height: 96px;
+      margin-top: var(--space-xs);
+    }
+
+    .view-3__save {
+      flex-shrink: 0;
+      margin-top: var(--space-sm);
     }
   </style>
 </head>
@@ -624,18 +1040,150 @@
     </button>
   </div>
 
-  <div id="view-2" class="view view--hidden">
+  <div id="view-2" class="view view-2 view--hidden">
+    <div class="view-2__body">
+      <h2 class="view-2__heading">Draw a prompt</h2>
+      <div class="view-2__stack">
+      <div class="deck-grid-panel">
+      <div class="deck-grid">
+        <button type="button" class="buddy-card buddy-card--deck" data-deck="Inspiration">
+          <div class="buddy-card__body">
+            <span class="deck-label text-label">
+              <span class="deck-indicator">
+                <svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,1 11,11 1,11" fill="#C8973A"/></svg>
+              </span>
+              Inspiration
+            </span>
+            <p class="buddy-card__deck-desc">Explore ideas and references</p>
+          </div>
+        </button>
+        <button type="button" class="buddy-card buddy-card--deck" data-deck="Connections">
+          <div class="buddy-card__body">
+            <span class="deck-label text-label">
+              <span class="deck-indicator">
+                <svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,0.5 11,3.25 11,8.75 6,11.5 1,8.75 1,3.25" fill="#4A8C6F"/></svg>
+              </span>
+              Connections
+            </span>
+            <p class="buddy-card__deck-desc">Navigate team and stakeholder tension</p>
+          </div>
+        </button>
+        <button type="button" class="buddy-card buddy-card--deck" data-deck="Interfacing">
+          <div class="buddy-card__body">
+            <span class="deck-label text-label">
+              <span class="deck-indicator">
+                <svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="#4A7FA5"/></svg>
+              </span>
+              Interfacing
+            </span>
+            <p class="buddy-card__deck-desc">Communicate intent through the UI</p>
+          </div>
+        </button>
+        <button type="button" id="deck-thread" class="buddy-card buddy-card--deck buddy-card--locked" data-deck="thread" disabled>
+          <div class="buddy-card__body">
+            <span class="deck-label text-label">
+              <span class="deck-indicator">
+                <svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="#C86E3A"/></svg>
+              </span>
+              Thread
+            </span>
+            <p class="buddy-card__deck-desc">Unlocks after 3 reflections</p>
+          </div>
+        </button>
+      </div>
+      </div>
+      <button type="button" id="surprise-btn" class="btn btn-secondary btn-with-icon view-2__surprise">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="4" y="4" width="16" height="16" rx="2"/>
+          <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="15" cy="9" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="9" cy="15" r="1" fill="currentColor" stroke="none"/>
+          <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none"/>
+        </svg>
+        Surprise me
+      </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-2b" class="view view-2b view--hidden">
+    <div class="view-2b__main">
+      <div class="view-2b__body">
+        <div class="view-2b__prompt-wrap">
+          <div id="drawn-card" class="buddy-card buddy-card--prompt">
+            <div id="view-2b-deck-indicator" class="buddy-card__badge" aria-hidden="true"></div>
+            <div class="buddy-card__body">
+              <p id="drawn-prompt" class="buddy-card__prompt text-prompt"></p>
+            </div>
+          </div>
+        </div>
+        <div class="view-2b__actions">
+          <button type="button" id="redraw-btn" class="btn btn-secondary">Redraw</button>
+          <button type="button" id="surprise-2b-btn" class="btn btn-secondary btn-with-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <rect x="4" y="4" width="16" height="16" rx="2"/>
+              <circle cx="9" cy="9" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="15" cy="9" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="9" cy="15" r="1" fill="currentColor" stroke="none"/>
+              <circle cx="15" cy="15" r="1" fill="currentColor" stroke="none"/>
+            </svg>
+            Surprise me
+          </button>
+        </div>
+      </div>
+      <nav class="view-nav" aria-label="Prompt navigation">
+        <button type="button" id="view-2b-back" class="nav-round-btn nav-round-btn--secondary" aria-label="Back to deck selection">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5M11 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <button type="button" id="view-2b-next" class="nav-round-btn nav-round-btn--primary" aria-label="Continue to reflect">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <div id="view-3" class="view view-3 view--hidden">
+    <div class="view-3__body">
+      <p id="view-3-anchor" class="view-3__anchor text-muted"></p>
+      <div id="view-3-earlier" class="view-3__earlier view-3__earlier--hidden">
+        <p class="view-3__earlier-label">Earlier you noted:</p>
+        <p id="view-3-earlier-text" class="view-3__earlier-text text-muted"></p>
+      </div>
+      <p id="view-3-prompt" class="view-3__prompt"></p>
+      <textarea id="view-3-response" class="textarea-reflection view-3__textarea" placeholder="Write your reflection…"></textarea>
+    </div>
+    <button type="button" id="view-3-save" class="btn btn-primary btn-full view-3__save" disabled>Save reflection</button>
+  </div>
+
+  <div id="view-4" class="view view--hidden">
     <div class="view-stub">
-      <p class="text-muted">Draw — Step 5</p>
+      <p class="text-muted">Saved — Step 7</p>
     </div>
   </div>
 
   <script>
     const LOADING_DURATION = 1500;
+    const MAX_REDRAWS = 2;
+    const MAIN_DECKS = ['Inspiration', 'Connections', 'Interfacing'];
 
     const loadingScreen = document.getElementById('loading-screen');
     const view1 = document.getElementById('view-1');
     const view2 = document.getElementById('view-2');
+    const view2b = document.getElementById('view-2b');
+    const view3 = document.getElementById('view-3');
+    const view4 = document.getElementById('view-4');
+    const view3Anchor = document.getElementById('view-3-anchor');
+    const view3Earlier = document.getElementById('view-3-earlier');
+    const view3EarlierText = document.getElementById('view-3-earlier-text');
+    const view3Prompt = document.getElementById('view-3-prompt');
+    const view3Response = document.getElementById('view-3-response');
+    const view3Save = document.getElementById('view-3-save');
     const view1Pick = document.getElementById('view-1-pick');
     const view1Selected = document.getElementById('view-1-selected');
     const framePreviewFallback = document.getElementById('frame-preview-fallback');
@@ -644,9 +1192,49 @@
     const anchorNameInput = document.getElementById('anchor-name-input');
     const clearSelectionBtn = document.getElementById('clear-selection-btn');
     const view1Next = document.getElementById('view-1-next');
+    const view2bBack = document.getElementById('view-2b-back');
+    const view2bDeckIndicator = document.getElementById('view-2b-deck-indicator');
+    const deckThreadBtn = document.getElementById('deck-thread');
+    const surpriseBtn = document.getElementById('surprise-btn');
+    const drawnPromptEl = document.getElementById('drawn-prompt');
+    const drawnCard = document.getElementById('drawn-card');
+    const redrawBtn = document.getElementById('redraw-btn');
+    const surprise2bBtn = document.getElementById('surprise-2b-btn');
+    const view2bNext = document.getElementById('view-2b-next');
+
+    const DECK_INDICATORS = {
+      Inspiration: '<span class="deck-indicator"><svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,1 11,11 1,11" fill="#C8973A"/></svg></span>',
+      Connections: '<span class="deck-indicator"><svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,0.5 11,3.25 11,8.75 6,11.5 1,8.75 1,3.25" fill="#4A8C6F"/></svg></span>',
+      Interfacing: '<span class="deck-indicator"><svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="#4A7FA5"/></svg></span>',
+      thread: '<span class="deck-indicator"><svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="#C86E3A"/></svg></span>'
+    };
+
+    const DECK_LABELS = {
+      Inspiration: 'Inspiration',
+      Connections: 'Connections',
+      Interfacing: 'Interfacing',
+      thread: 'Thread'
+    };
 
     let selection = null;
     let anchorTitle = '';
+    let anchorCommitted = false;
+    let prompts = null;
+    let reflectionCount = 0;
+    let selectedDeck = null;
+    let activeDeck = null;
+    let redrawCount = 0;
+    let view2bLocked = false;
+    let pendingHelperText = null;
+    let lastReflectionExcerpt = null;
+
+    const appState = {
+      anchor: null,
+      anchorTitle: '',
+      deck: null,
+      prompt: null,
+      helperText: null
+    };
 
     function showView(el) {
       el.classList.remove('view--hidden');
@@ -656,8 +1244,225 @@
       el.classList.add('view--hidden');
     }
 
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function isThreadUnlocked() {
+      return reflectionCount >= 3;
+    }
+
+    function updateThreadCard() {
+      const unlocked = isThreadUnlocked();
+      deckThreadBtn.disabled = !unlocked;
+      deckThreadBtn.classList.toggle('buddy-card--locked', !unlocked);
+      deckThreadBtn.querySelector('.buddy-card__deck-desc').textContent = unlocked
+        ? 'Pick up where you left off'
+        : 'Unlocks after 3 reflections';
+    }
+
+    function setReflectionCount(count) {
+      reflectionCount = count;
+      updateThreadCard();
+    }
+
+    function clearDeckSelection() {
+      selectedDeck = null;
+      document.querySelectorAll('.buddy-card--deck[data-deck]').forEach((btn) => {
+        btn.classList.remove('buddy-card--selected');
+      });
+    }
+
+    function playDeckPickAnimation(deckKey) {
+      const btn = document.querySelector('.buddy-card--deck[data-deck="' + deckKey + '"]');
+      if (!btn) return;
+      btn.classList.remove('buddy-card--picking');
+      void btn.offsetWidth;
+      btn.classList.add('buddy-card--picking');
+      btn.addEventListener('animationend', () => {
+        btn.classList.remove('buddy-card--picking');
+      }, { once: true });
+    }
+
+    function selectDeck(deckKey) {
+      if (deckKey === 'thread' && !isThreadUnlocked()) return;
+      selectedDeck = deckKey;
+      document.querySelectorAll('.buddy-card--deck[data-deck]').forEach((btn) => {
+        btn.classList.toggle('buddy-card--selected', btn.dataset.deck === deckKey);
+      });
+      playDeckPickAnimation(deckKey);
+      goToView2b();
+    }
+
+    function surpriseMe() {
+      const pool = isThreadUnlocked()
+        ? MAIN_DECKS.concat(['thread'])
+        : MAIN_DECKS.slice();
+      selectDeck(randomItem(pool));
+    }
+
+    function goBackToView2() {
+      if (view2bLocked) return;
+      hideView(view2b);
+      showView(view2);
+      clearDeckSelection();
+      activeDeck = null;
+    }
+
+    function updateDeckIndicator(deckKey) {
+      const label = DECK_LABELS[deckKey] || deckKey;
+      const icon = DECK_INDICATORS[deckKey] || '';
+      view2bDeckIndicator.innerHTML =
+        icon + '<span class="buddy-card__badge-label">' + label + '</span>';
+    }
+
+    function updateView2bControls() {
+      const hideRedraw = view2bLocked || redrawCount >= MAX_REDRAWS;
+      const hideSurpriseAndBack = view2bLocked;
+
+      redrawBtn.classList.toggle('view-2b__redraw--hidden', hideRedraw);
+      surprise2bBtn.classList.toggle('view-2b__redraw--hidden', hideSurpriseAndBack);
+      view2bBack.classList.toggle('view-2b__redraw--hidden', hideSurpriseAndBack);
+    }
+
+    function playCardAnimation() {
+      drawnCard.classList.remove('buddy-card--animate');
+      drawnCard.classList.add('buddy-card--hidden');
+      requestAnimationFrame(() => {
+        void drawnCard.offsetWidth;
+        drawnCard.classList.remove('buddy-card--hidden');
+        drawnCard.classList.add('buddy-card--animate');
+      });
+    }
+
+    function requestPromptsFromPlugin() {
+      parent.postMessage({ pluginMessage: { type: 'get-prompts' } }, '*');
+    }
+
+    function waitForPrompts(timeoutMs) {
+      if (prompts) return Promise.resolve(true);
+      return new Promise((resolve) => {
+        const deadline = Date.now() + timeoutMs;
+        const check = () => {
+          if (prompts) {
+            resolve(true);
+            return;
+          }
+          if (Date.now() >= deadline) {
+            resolve(false);
+            return;
+          }
+          setTimeout(check, 40);
+        };
+        check();
+      });
+    }
+
+    async function ensurePrompts() {
+      if (prompts) return true;
+      requestPromptsFromPlugin();
+      return waitForPrompts(2500);
+    }
+
+    function drawPrompt() {
+      if (!activeDeck) return;
+
+      if (!prompts) {
+        drawnPromptEl.textContent = 'Unable to load prompts. Reload the plugin.';
+        updateDeckIndicator(activeDeck);
+        playCardAnimation();
+        return;
+      }
+
+      let question = '';
+      pendingHelperText = null;
+
+      if (activeDeck === 'thread') {
+        question = randomItem(prompts.thread);
+      } else {
+        const entry = randomItem(prompts[activeDeck]);
+        question = entry.question;
+        pendingHelperText = entry.helper_text;
+      }
+
+      updateDeckIndicator(activeDeck);
+      drawnPromptEl.textContent = question;
+      playCardAnimation();
+      updateView2bControls();
+    }
+
+    async function goToView2b() {
+      if (!selectedDeck) return;
+      activeDeck = selectedDeck;
+      redrawCount = 0;
+      view2bLocked = false;
+      updateView2bControls();
+      drawnCard.classList.add('buddy-card--hidden');
+      drawnPromptEl.textContent = '';
+      hideView(view2);
+      showView(view2b);
+      const loaded = await ensurePrompts();
+      if (!loaded) {
+        drawnPromptEl.textContent = 'Unable to load prompts. Reload the plugin.';
+        updateDeckIndicator(activeDeck);
+        playCardAnimation();
+        return;
+      }
+      drawPrompt();
+    }
+
+    function surpriseMe2b() {
+      if (view2bLocked) return;
+      const pool = isThreadUnlocked()
+        ? MAIN_DECKS.concat(['thread'])
+        : MAIN_DECKS.slice();
+      activeDeck = randomItem(pool);
+      view2bLocked = true;
+      drawPrompt();
+    }
+
+    function initView2() {
+      clearDeckSelection();
+      activeDeck = null;
+      redrawCount = 0;
+      view2bLocked = false;
+      hideView(view2b);
+      updateThreadCard();
+    }
+
+    function updateView3SaveState() {
+      view3Save.disabled = !view3Response.value.trim();
+    }
+
+    function renderView3() {
+      const anchorLabel =
+        appState.anchorTitle ||
+        (appState.anchor && appState.anchor.value) ||
+        '';
+      view3Anchor.textContent = anchorLabel;
+      view3Prompt.textContent = appState.prompt || '';
+
+      if (lastReflectionExcerpt) {
+        view3Earlier.classList.remove('view-3__earlier--hidden');
+        view3EarlierText.textContent = lastReflectionExcerpt;
+      } else {
+        view3Earlier.classList.add('view-3__earlier--hidden');
+      }
+
+      view3Response.value = appState.response || '';
+      updateView3SaveState();
+    }
+
+    function saveReflection() {
+      const response = view3Response.value.trim();
+      if (!response) return;
+      appState.response = response;
+      hideView(view3);
+      showView(view4);
+    }
+
     function updateNavState() {
-      view1Next.disabled = !selection;
+      view1Next.disabled = !anchorCommitted;
     }
 
     function showPickState() {
@@ -675,6 +1480,7 @@
     function applySelection(data) {
       selection = { name: data.name, type: data.type, image: data.image };
       anchorTitle = data.name;
+      anchorCommitted = true;
       anchorNameInput.value = data.name;
 
       if (data.image) {
@@ -696,6 +1502,7 @@
     function clearSelection() {
       selection = null;
       anchorTitle = '';
+      anchorCommitted = false;
       anchorNameInput.value = '';
       framePreviewImg.hidden = true;
       framePreviewImg.removeAttribute('src');
@@ -704,6 +1511,8 @@
       framePreviewFallback.classList.add('frame-preview__name--hidden');
       showPickState();
     }
+
+    requestPromptsFromPlugin();
 
     setTimeout(() => {
       loadingScreen.classList.add('loading-screen--done');
@@ -723,7 +1532,13 @@
       const msg = event.data.pluginMessage;
       if (!msg) return;
 
+      if (msg.type === 'prompts-loaded' && msg.data) {
+        prompts = msg.data;
+        return;
+      }
+
       if (msg.type === 'selection-cleared') {
+        if (anchorCommitted) return;
         clearSelection();
         return;
       }
@@ -734,10 +1549,51 @@
     };
 
     view1Next.addEventListener('click', () => {
-      if (!selection) return;
+      if (!anchorCommitted) return;
+      const anchorValue = anchorTitle.trim() || (selection ? selection.name : '');
+      if (!anchorValue) return;
+      appState.anchor = {
+        type: 'frame',
+        value: anchorValue,
+        figmaName: selection ? selection.name : anchorValue,
+        figmaType: selection ? selection.type : null
+      };
+      appState.anchorTitle = anchorValue;
       hideView(view1);
+      initView2();
       showView(view2);
     });
+
+    document.querySelectorAll('.buddy-card--deck[data-deck]').forEach((btn) => {
+      btn.addEventListener('click', () => selectDeck(btn.dataset.deck));
+    });
+
+    surpriseBtn.addEventListener('click', surpriseMe);
+
+    view2bBack.addEventListener('click', goBackToView2);
+
+    redrawBtn.addEventListener('click', () => {
+      if (view2bLocked || redrawCount >= MAX_REDRAWS || !activeDeck) return;
+      redrawCount += 1;
+      drawPrompt();
+    });
+
+    surprise2bBtn.addEventListener('click', surpriseMe2b);
+
+    view2bNext.addEventListener('click', () => {
+      if (!activeDeck) return;
+      appState.deck = activeDeck === 'thread' ? 'thread' : activeDeck.toLowerCase();
+      appState.prompt = drawnPromptEl.textContent;
+      appState.helperText = pendingHelperText;
+      hideView(view2b);
+      showView(view3);
+      renderView3();
+    });
+
+    view3Response.addEventListener('input', updateView3SaveState);
+    view3Save.addEventListener('click', saveReflection);
+
+    setReflectionCount(0);
   </script>
 </body>
 </html>

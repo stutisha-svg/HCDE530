@@ -180,11 +180,39 @@ If any task seems to require modifying these files, stop and ask first.
 
 ---
 
-## 12. Plugin size is fixed
+## 12. Plugin size and layout (fixed)
 
-The plugin UI is exactly 240px wide and 480px tall. This is set in code.js and must not
-change. Do not add scrolling to views to compensate for content that doesn't fit — redesign
-the content to fit the constraint.
+The plugin panel is **360 × 480px** (set in `code.js`). Do not change panel dimensions.
+
+**No scroll** inside any view. **No overlapping elements.** If content does not fit, reduce
+spacing or card size — never add `overflow-y: auto` to views.
+
+### Buddy card dimensions (CSS variables in `ui.html`)
+
+| Variant | View | Size (W × H) | Ratio |
+|---------|------|--------------|-------|
+| Deck pick | View 2 | **120 × 170px** | 120∶170 |
+| Drawn prompt | View 2b | **216 × 306px** | same 120∶170 |
+
+Use the shared `.buddy-card` component for all cards. Deck indicator on View 2b sits **on**
+the prompt card (`.buddy-card__badge`), not above the panel.
+
+### Bottom navigation (View 2b and any view with back + continue)
+
+Back and continue must share one **horizontal row** at the bottom (`.view-nav`):
+back (left), continue (right). Do **not** absolutely position these over the card or action
+buttons. Action rows (Redraw, Surprise me) sit **above** `.view-nav`, never overlapping it.
+
+View 2: deck grid **248px** wide (2×120 + 8 gap); Surprise me button matches that width.
+
+### View 2b — Redraw and Surprise me (behavior)
+
+- **Redraw:** max **2** per visit to View 2b (one deck pick). After 2 redraws, hide Redraw only.
+- **Surprise me (View 2b):** when tapped, draw a new random prompt and then **lock** the screen:
+  hide **Redraw**, **Surprise me**, and **Back** so the user cannot return to deck pick and get
+  another redraw/surprise cycle. **Continue** stays visible to advance to Reflect.
+- Reset redraw count and control visibility only when entering View 2b from a new deck pick
+  (View 2).
 
 ---
 
