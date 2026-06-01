@@ -12,3 +12,4 @@
 [2026-05-31] | feat: persist reflections with figma.clientStorage | Save/load on plugin open; reflections survive close; Thread unlock from count | Step 9: View 6 — Document generation
 [2026-05-31] | chore: sync prompts.json into code.js | User-edited prompts.json regenerated via embed script | Reload plugin; then View 6
 [2026-06-01] | feat: View 6 export screen + thread excerpt substitution | View 6: full log .md download, Notion stub; Thread prompts use {past_excerpt}; View 4 export entry | Step 13: AI API call
+[2026-06-01] | refactor: merge View 6 into View 5 | Export all .md on Reflections tab; Notion on Documents tab; View 4 simplified | Step 13: AI API call
