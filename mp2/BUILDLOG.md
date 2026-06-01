@@ -4,3 +4,4 @@
 [2026-05-31] | feat: View 1 — Anchor (loading, selectionchange, anchor preview) | Figma: frame select, preview, rename, arrow to View 2; fix view--hidden + anchorCommitted | Step 5: View 2 — Draw
 [2026-05-31] | feat: View 2 deck pick + View 2b prompt draw | Vertical playing cards, Thread locked, Surprise me + dice; 2b card animation, Redraw/Surprise row | Verify in Figma; commit if pending; Step 6: View 3 — Reflect
 [2026-05-31] | fix: View 2b prompts via prompts-data.js + layout | Blank prompt fixed; playing-card ratio; secondary CTAs; deck indicator on 2b | User re-test View 2b; then View 3 Reflect
+[2026-05-31] | feat: View 2/2b complete + View 3 Reflect UI | Figma: deck pick, draw, redraw/surprise lock, reflect + save to stub | Step 7: View 4 — Saved
