@@ -1,0 +1,38 @@
+Problem — HCD designers lose the reasoning behind their in-progress decisions because reflection only happens after the fact, forcing them to reconstruct rationale from memory when writing handoffs, case studies, or portfolio documentation.
+Audience — Mid-level HCD and UX designers working inside Figma on active projects who want to document their process but deprioritize it under deadline pressure. Design leads who need to hand off decision rationale to collaborators also benefit.
+Data — The designer selects a Figma frame or pastes text as a work anchor, responds to a card-drawn prompt, and the tool produces a structured reflection document written in their own words, stored locally via figma.clientStorage. This helps design practitioners grow their practice. 
+Track — Design track: the plugin interface is the ritual — the UI is the product.
+Platform — Cursor.
+Rationale — This project requires a Figma plugin, which Lovable and Bolt cannot scaffold — it needs direct access to the Figma Plugin API and its native storage layer. The document generation logic and card system also involve real computation that benefits from Cursor's code-first environment over a drag-and-drop builder.
+
+The problem
+
+Designers want to reflect on their work but rarely do it well. Documentation feels like a chore, and the moments of real insight — mid-process, between meetings, at the end of a long day — pass without being captured. By the time a post-mortem or retrospective rolls around, the reasoning behind decisions has evaporated.
+
+The result: Figma files full of decisions with no trail of thought. Knowledge that lives only in one person's head. Reflection that never happened, or happened too late.
+
+Who it's for
+
+Mid-level HCD and UX designers working on active projects — self-motivated but time-pressured. They want to reflect but the habit breaks under workload. Design Buddy meets them at the moment they're already at: logging off for the day.
+
+Secondary: design leads who need to hand off project rationale, or designers building a portfolio of thinking over time.
+
+The three reflection decks
+
+Inspiration
+
+Books, films, references, or ideas that informed today's thinking
+
+Connections
+
+Cross-functional decisions, constraints, or relationships considered
+
+Interfacing
+
+What needs to be shared with stakeholders or collaborators
+
+How it works
+
+The buddy lives as a persistent desktop icon — always available, never intrusive. At log-off, it opens a panel and asks the designer to anchor their reflection to a piece of actual work: a selected Figma frame, or pasted text. Then it draws a card from one of the three decks (chosen or random) and poses a focused prompt. The designer responds in their own words. That's it.
+
+Reflections accumulate locally. When ready, the tool generates a well-formatted design document — structured by the three decks, written in the designer's own voice — exported to a Figma page or as Markdown.
