@@ -8,6 +8,10 @@ figma.ui.onmessage = async (msg) => {
   if (msg.type === "get-prompts") {
     figma.ui.postMessage({ type: "prompts-loaded", data: PROMPTS_DATA });
   }
+
+  if (msg.type === "close") {
+    figma.closePlugin();
+  }
 };
 
 figma.on("selectionchange", async () => {

@@ -1135,6 +1135,63 @@
       margin-top: var(--space-sm);
     }
 
+    /* View 4 — Saved */
+    .view-4 {
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-md) var(--space-lg);
+      overflow: hidden;
+    }
+
+    .view-4__close {
+      align-self: flex-end;
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-regular);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .view-4__close:hover {
+      color: var(--color-text);
+    }
+
+    .view-4__body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-xl);
+      min-height: 0;
+      text-align: center;
+    }
+
+    .view-4__message {
+      margin: 0;
+      font-family: var(--font-ui);
+      font-size: var(--text-lg);
+      font-weight: var(--weight-medium);
+      line-height: var(--leading-relaxed);
+      color: var(--color-text);
+    }
+
+    .view-4__actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      width: 100%;
+      max-width: 280px;
+      flex-shrink: 0;
+    }
+
     .view-3__tabs {
       position: absolute;
       right: var(--space-lg);
@@ -1383,9 +1440,26 @@
     <button type="button" id="view-3-save" class="btn btn-primary btn-full view-3__save" disabled>Save reflection</button>
   </div>
 
-  <div id="view-4" class="view view--hidden">
+  <div id="view-4" class="view view-4 view--hidden">
+    <button type="button" id="view-4-close" class="view-4__close">Close</button>
+    <div class="view-4__body">
+      <p class="view-4__message">Saved. See you tomorrow.</p>
+      <div class="view-4__actions">
+        <button type="button" id="view-4-log" class="btn btn-secondary btn-full">See all reflections</button>
+        <button type="button" id="view-4-document" class="btn btn-secondary btn-full">Generate document</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-5" class="view view--hidden">
     <div class="view-stub">
-      <p class="text-muted">Saved — Step 7</p>
+      <p class="text-muted">Log — Step 8</p>
+    </div>
+  </div>
+
+  <div id="view-6" class="view view--hidden">
+    <div class="view-stub">
+      <p class="text-muted">Document — Step 9</p>
     </div>
   </div>
 
@@ -1404,6 +1478,11 @@
     const view2b = document.getElementById('view-2b');
     const view3 = document.getElementById('view-3');
     const view4 = document.getElementById('view-4');
+    const view5 = document.getElementById('view-5');
+    const view6 = document.getElementById('view-6');
+    const view4Close = document.getElementById('view-4-close');
+    const view4Log = document.getElementById('view-4-log');
+    const view4Document = document.getElementById('view-4-document');
     const view3Anchor = document.getElementById('view-3-anchor');
     const view3Earlier = document.getElementById('view-3-earlier');
     const view3EarlierText = document.getElementById('view-3-earlier-text');
@@ -1844,6 +1923,10 @@
       showView(view4);
     }
 
+    function closePlugin() {
+      parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
+    }
+
     function updateNavState() {
       view1Next.disabled = !anchorCommitted;
     }
@@ -2005,6 +2088,16 @@
 
     view3Response.addEventListener('input', updateView3SaveState);
     view3Save.addEventListener('click', saveReflection);
+
+    view4Close.addEventListener('click', closePlugin);
+    view4Log.addEventListener('click', () => {
+      hideView(view4);
+      showView(view5);
+    });
+    view4Document.addEventListener('click', () => {
+      hideView(view4);
+      showView(view6);
+    });
 
     setReflectionCount(0);
   </script>
