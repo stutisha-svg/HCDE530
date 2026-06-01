@@ -8,9 +8,15 @@ const code = `figma.showUI(__html__, { width: 360, height: 480, title: "Design B
 
 const PROMPTS_DATA = ${JSON.stringify(prompts)};
 const REFLECTIONS_KEY = "reflections";
+const DOCUMENTS_KEY = "documents";
 
 async function loadReflections() {
   const data = await figma.clientStorage.getAsync(REFLECTIONS_KEY);
+  return Array.isArray(data) ? data : [];
+}
+
+async function loadDocuments() {
+  const data = await figma.clientStorage.getAsync(DOCUMENTS_KEY);
   return Array.isArray(data) ? data : [];
 }
 
@@ -18,13 +24,22 @@ async function saveReflections(reflections) {
   await figma.clientStorage.setAsync(REFLECTIONS_KEY, reflections);
 }
 
-async function postReflectionsToUI() {
-  const data = await loadReflections();
-  figma.ui.postMessage({ type: "reflections-loaded", data });
+async function saveDocuments(documents) {
+  await figma.clientStorage.setAsync(DOCUMENTS_KEY, documents);
+}
+
+async function postHistoryToUI() {
+  const reflections = await loadReflections();
+  const documents = await loadDocuments();
+  figma.ui.postMessage({
+    type: "reflections-loaded",
+    data: reflections,
+    documents
+  });
 }
 
 figma.ui.postMessage({ type: "prompts-loaded", data: PROMPTS_DATA });
-postReflectionsToUI();
+postHistoryToUI();
 
 figma.ui.onmessage = async (msg) => {
   if (msg.type === "get-prompts") {
@@ -32,7 +47,7 @@ figma.ui.onmessage = async (msg) => {
   }
 
   if (msg.type === "get-reflections") {
-    await postReflectionsToUI();
+    await postHistoryToUI();
   }
 
   if (msg.type === "save-reflection") {
@@ -41,8 +56,31 @@ figma.ui.onmessage = async (msg) => {
     const existing = await loadReflections();
     existing.unshift(entry);
     await saveReflections(existing);
-    figma.ui.postMessage({ type: "reflections-loaded", data: existing });
+    await postHistoryToUI();
     figma.ui.postMessage({ type: "save-success" });
+  }
+
+  if (msg.type === "delete-reflection") {
+    const id = msg.id;
+    if (!id) return;
+    const existing = await loadReflections();
+    const next = existing.filter((r) => r.id !== id);
+    await saveReflections(next);
+    await postHistoryToUI();
+  }
+
+  if (msg.type === "save-compiled-document") {
+    const doc = msg.document;
+    const reflectionIds = Array.isArray(msg.reflectionIds) ? msg.reflectionIds : [];
+    if (!doc || reflectionIds.length === 0) return;
+    const existing = await loadReflections();
+    const idSet = new Set(reflectionIds);
+    const nextReflections = existing.filter((r) => !idSet.has(r.id));
+    await saveReflections(nextReflections);
+    const docs = await loadDocuments();
+    docs.unshift(doc);
+    await saveDocuments(docs);
+    await postHistoryToUI();
   }
 
   if (msg.type === "close") {

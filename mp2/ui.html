@@ -1143,26 +1143,6 @@
       overflow: hidden;
     }
 
-    .view-4__close {
-      align-self: flex-end;
-      flex-shrink: 0;
-      margin: 0;
-      padding: 0;
-      border: none;
-      background: none;
-      font-family: var(--font-ui);
-      font-size: var(--text-sm);
-      font-weight: var(--weight-regular);
-      color: var(--color-text-muted);
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    .view-4__close:hover {
-      color: var(--color-text);
-    }
-
     .view-4__body {
       flex: 1;
       display: flex;
@@ -1192,6 +1172,34 @@
       flex-shrink: 0;
     }
 
+    .view-4__text-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-regular);
+      color: var(--color-text);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .view-4__text-link:hover {
+      opacity: 0.75;
+    }
+
+    .view-4__text-link svg {
+      display: block;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
     /* View 5 — Log */
     .view-5 {
       display: flex;
@@ -1201,37 +1209,27 @@
     }
 
     .view-5__header {
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
       flex-shrink: 0;
       margin-bottom: var(--space-sm);
     }
 
-    .view-5__back {
-      flex-shrink: 0;
-      margin: 0;
-      padding: 0;
-      border: none;
-      background: none;
-      font-family: var(--font-ui);
-      font-size: var(--text-sm);
-      color: var(--color-text-muted);
-      cursor: pointer;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    .view-5__back:hover {
-      color: var(--color-text);
+    .view-5__nav {
+      margin-top: 0;
+      height: 40px;
     }
 
     .view-5__heading {
       margin: 0;
       flex: 1;
+      text-align: center;
       font-size: var(--text-md);
       font-weight: var(--weight-semibold);
       line-height: var(--leading-tight);
+    }
+
+    .view-5__nav-spacer {
+      width: 40px;
+      flex-shrink: 0;
     }
 
     .view-5__empty {
@@ -1256,6 +1254,178 @@
       flex-direction: column;
       gap: var(--space-sm);
       padding-bottom: var(--space-xs);
+    }
+
+    .view-5__footer {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+      padding-top: var(--space-sm);
+    }
+
+    .view-5__compile-confirm--hidden {
+      display: none;
+    }
+
+    .view-5--compile-mode .log-entry--reflection {
+      cursor: pointer;
+      border-color: var(--color-border-strong);
+    }
+
+    .view-5--compile-mode .log-entry--reflection.log-entry--selected {
+      border-color: var(--color-text);
+      box-shadow: 0 0 0 1px var(--color-text);
+    }
+
+    .view-5--compile-mode .log-entry--start-new {
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .view-5--compile-mode .log-entry__delete {
+      display: none;
+    }
+
+    .log-entry--reflection .log-entry__meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .log-entry--reflection .log-entry__date {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .log-entry--reflection .log-entry__deck {
+      flex-shrink: 0;
+    }
+
+    .log-entry--start-new {
+      display: block;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+      border: none;
+      background-color: var(--color-text);
+      color: var(--color-bg);
+      transition: opacity var(--duration-fast) var(--ease-out);
+    }
+
+    .log-entry--start-new:hover {
+      opacity: 0.9;
+    }
+
+    .log-entry--start-new .log-entry__meta,
+    .log-entry--start-new .log-entry__anchor,
+    .log-entry--start-new .log-entry__start-label {
+      color: var(--color-bg);
+    }
+
+    .log-entry--start-new .log-entry__deck {
+      color: var(--color-bg);
+      opacity: 0.85;
+    }
+
+    .log-entry--start-new .deck-indicator svg polygon,
+    .log-entry--start-new .deck-indicator svg rect,
+    .log-entry--start-new .deck-indicator svg circle {
+      opacity: 0.95;
+    }
+
+    .log-entry__start-label {
+      margin: 0 0 var(--space-xs);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-semibold);
+      line-height: var(--leading-tight);
+    }
+
+    .log-entry__start-desc {
+      margin: 0;
+      font-size: var(--text-xs);
+      opacity: 0.8;
+      line-height: var(--leading-normal);
+    }
+
+    .log-entry--document {
+      border-style: dashed;
+      background-color: var(--color-bg);
+    }
+
+    .log-entry__doc-preview {
+      margin: 0;
+      font-size: var(--text-xs);
+      line-height: var(--leading-normal);
+      color: var(--color-text-muted);
+      white-space: pre-wrap;
+      word-break: break-word;
+      display: none;
+      max-height: 120px;
+      overflow: hidden;
+    }
+
+    .log-entry__doc-preview--visible {
+      display: block;
+    }
+
+    .log-entry__doc-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-sm);
+    }
+
+    .log-entry__doc-actions .btn {
+      flex: 1;
+    }
+
+    .log-entry__delete {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      margin: 0;
+      padding: 0;
+      border: 1px solid var(--color-border);
+      border-radius: 50%;
+      background: var(--color-surface);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      transition: color var(--duration-fast) var(--ease-out),
+                  border-color var(--duration-fast) var(--ease-out);
+    }
+
+    .log-entry__delete:hover {
+      color: var(--color-text);
+      border-color: var(--color-border-strong);
+    }
+
+    .log-entry__delete svg {
+      display: block;
+      width: 14px;
+      height: 14px;
+    }
+
+    .log-entry__select-mark {
+      display: none;
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: 4px;
+      background: var(--color-surface);
+    }
+
+    .view-5--compile-mode .log-entry--reflection .log-entry__select-mark {
+      display: block;
+    }
+
+    .log-entry--selected .log-entry__select-mark {
+      background: var(--color-text);
+      border-color: var(--color-text);
+      box-shadow: inset 0 0 0 3px var(--color-surface);
     }
 
     .log-entry {
@@ -1593,23 +1763,38 @@
   </div>
 
   <div id="view-4" class="view view-4 view--hidden">
-    <button type="button" id="view-4-close" class="view-4__close">Close</button>
     <div class="view-4__body">
       <p class="view-4__message">Saved. See you tomorrow.</p>
       <div class="view-4__actions">
         <button type="button" id="view-4-log" class="btn btn-secondary btn-full">See all reflections</button>
-        <button type="button" id="view-4-document" class="btn btn-secondary btn-full">Generate document</button>
       </div>
+      <button type="button" id="view-4-continue" class="view-4__text-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M19 12H5M11 18l-6-6 6-6"/>
+        </svg>
+        Go back to reflecting more
+      </button>
     </div>
   </div>
 
   <div id="view-5" class="view view-5 view--hidden">
     <div class="view-5__header">
-      <button type="button" id="view-5-back" class="view-5__back">Back</button>
-      <h2 class="view-5__heading">Reflections</h2>
+      <nav class="view-nav view-5__nav" aria-label="Reflection log navigation">
+        <button type="button" id="view-5-back" class="nav-round-btn nav-round-btn--secondary" aria-label="Back to saved screen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 12H5M11 18l-6-6 6-6"/>
+          </svg>
+        </button>
+        <h2 class="view-5__heading">Reflections</h2>
+        <span class="view-5__nav-spacer" aria-hidden="true"></span>
+      </nav>
     </div>
     <p id="view-5-empty" class="view-5__empty view-5__empty--hidden text-muted">No reflections yet.</p>
     <div id="view-5-list" class="view-5__list" role="list"></div>
+    <div class="view-5__footer">
+      <button type="button" id="view-5-compile-toggle" class="btn btn-secondary btn-full">Compile document</button>
+      <button type="button" id="view-5-compile-confirm" class="btn btn-primary btn-full view-5__compile-confirm view-5__compile-confirm--hidden">Compile selected</button>
+    </div>
   </div>
 
   <div id="view-6" class="view view--hidden">
@@ -1635,12 +1820,13 @@
     const view4 = document.getElementById('view-4');
     const view5 = document.getElementById('view-5');
     const view6 = document.getElementById('view-6');
-    const view4Close = document.getElementById('view-4-close');
     const view4Log = document.getElementById('view-4-log');
-    const view4Document = document.getElementById('view-4-document');
+    const view4Continue = document.getElementById('view-4-continue');
     const view5Back = document.getElementById('view-5-back');
     const view5Empty = document.getElementById('view-5-empty');
     const view5List = document.getElementById('view-5-list');
+    const view5CompileToggle = document.getElementById('view-5-compile-toggle');
+    const view5CompileConfirm = document.getElementById('view-5-compile-confirm');
     const view3Anchor = document.getElementById('view-3-anchor');
     const view3Earlier = document.getElementById('view-3-earlier');
     const view3EarlierText = document.getElementById('view-3-earlier-text');
@@ -1695,6 +1881,10 @@
     };
 
     let reflections = [];
+    let documents = [];
+    let compileMode = false;
+    let compileSelectedIds = new Set();
+    let preselectedDeck = null;
     let selection = null;
     let anchorTitle = '';
     let anchorCommitted = false;
@@ -1776,6 +1966,318 @@
       updateReflectionDerivedState();
     }
 
+    function setDocuments(data) {
+      documents = Array.isArray(data) ? data.slice() : [];
+    }
+
+    function setHistory(data, docs) {
+      setReflections(data);
+      setDocuments(docs);
+    }
+
+    function getExclusiveDeck() {
+      const counts = { Inspiration: 0, Connections: 0, Interfacing: 0 };
+      reflections.forEach((entry) => {
+        const key = DECK_KEY_FROM_STORED[entry.deck] || 'Inspiration';
+        if (key in counts) counts[key] += 1;
+      });
+      const min = Math.min(
+        counts.Inspiration,
+        counts.Connections,
+        counts.Interfacing
+      );
+      const candidates = MAIN_DECKS.filter((deck) => counts[deck] === min);
+      return randomItem(candidates);
+    }
+
+    function compileReflectionsMarkdown(entries) {
+      const generated = new Date().toLocaleDateString(undefined, {
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      const byDeck = {
+        Inspiration: [],
+        Connections: [],
+        Interfacing: [],
+        thread: []
+      };
+
+      entries.forEach((entry) => {
+        const key = DECK_KEY_FROM_STORED[entry.deck] || 'Inspiration';
+        const bucket = key === 'thread' ? 'thread' : key;
+        if (byDeck[bucket]) byDeck[bucket].push(entry);
+      });
+
+      let md =
+        '# Design Buddy — Reflection Log\nGenerated: ' +
+        generated +
+        '\n\n---\n\n';
+
+      ['Inspiration', 'Connections', 'Interfacing'].forEach((deckName) => {
+        const deckEntries = byDeck[deckName];
+        if (!deckEntries.length) return;
+        md += '## ' + deckName + '\n\n';
+        deckEntries.forEach((entry) => {
+          const anchor =
+            (entry.anchor && entry.anchor.value) || 'Untitled anchor';
+          md +=
+            '### ' +
+            formatLogDate(entry.date) +
+            ' — ' +
+            anchor +
+            '\n**Prompt:** ' +
+            entry.prompt +
+            '\n\n' +
+            entry.response +
+            '\n\n---\n\n';
+        });
+      });
+
+      if (byDeck.thread.length) {
+        md += '## Thread\n\n';
+        byDeck.thread.forEach((entry) => {
+          const anchor =
+            (entry.anchor && entry.anchor.value) || 'Untitled anchor';
+          md +=
+            '### ' +
+            formatLogDate(entry.date) +
+            ' — ' +
+            anchor +
+            '\n**Prompt:** ' +
+            entry.prompt +
+            '\n\n' +
+            entry.response +
+            '\n\n---\n\n';
+        });
+      }
+
+      return md.trim() + '\n';
+    }
+
+    function downloadMarkdown(markdown, filename) {
+      const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exitCompileMode() {
+      compileMode = false;
+      compileSelectedIds = new Set();
+      view5.classList.remove('view-5--compile-mode');
+      view5CompileConfirm.classList.add('view-5__compile-confirm--hidden');
+      view5CompileToggle.textContent = 'Compile document';
+    }
+
+    function enterCompileMode() {
+      if (reflections.length === 0) return;
+      compileMode = true;
+      compileSelectedIds = new Set();
+      view5.classList.add('view-5--compile-mode');
+      view5CompileConfirm.classList.remove('view-5__compile-confirm--hidden');
+      view5CompileToggle.textContent = 'Cancel';
+      renderLog();
+    }
+
+    function updateCompileConfirmState() {
+      view5CompileConfirm.disabled = compileSelectedIds.size === 0;
+    }
+
+    function toggleCompileSelection(id) {
+      if (!compileMode) return;
+      if (compileSelectedIds.has(id)) {
+        compileSelectedIds.delete(id);
+      } else {
+        compileSelectedIds.add(id);
+      }
+      updateCompileConfirmState();
+      renderLog();
+    }
+
+    function persistCompiledDocument(markdown, reflectionIds) {
+      const doc = {
+        id:
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : String(Date.now()) + '-doc-' + Math.random().toString(36).slice(2, 8),
+        date: new Date().toISOString().slice(0, 10),
+        createdAt: new Date().toISOString(),
+        reflectionIds: reflectionIds.slice(),
+        reflectionCount: reflectionIds.length,
+        markdown
+      };
+      parent.postMessage(
+        {
+          pluginMessage: {
+            type: 'save-compiled-document',
+            document: doc,
+            reflectionIds
+          }
+        },
+        '*'
+      );
+    }
+
+    function deleteReflection(id) {
+      parent.postMessage(
+        { pluginMessage: { type: 'delete-reflection', id } },
+        '*'
+      );
+    }
+
+    function buildStartNewCard() {
+      const deckKey = getExclusiveDeck();
+      const deckLabel = DECK_LABELS[deckKey] || deckKey;
+      const deckIcon = DECK_INDICATORS[deckKey] || '';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'log-entry log-entry--start-new';
+      btn.setAttribute('role', 'listitem');
+      btn.innerHTML =
+        '<div class="log-entry__meta">' +
+          '<p class="log-entry__date">Suggested deck</p>' +
+          '<p class="log-entry__deck">' + deckIcon + deckLabel + '</p>' +
+        '</div>' +
+        '<p class="log-entry__start-label">Start new reflection</p>' +
+        '<p class="log-entry__start-desc">Least-used deck from your history — tap to draw a prompt.</p>';
+      btn.addEventListener('click', startNewReflectionFromLog);
+      return btn;
+    }
+
+    function buildReflectionLogEntry(entry) {
+      const deckKey = DECK_KEY_FROM_STORED[entry.deck] || 'Inspiration';
+      const deckLabel = DECK_LABELS[deckKey] || entry.deck;
+      const deckIcon = DECK_INDICATORS[deckKey] || '';
+      const anchorLabel =
+        (entry.anchor && entry.anchor.value) || 'Untitled anchor';
+      const selected = compileSelectedIds.has(entry.id);
+
+      const article = document.createElement('article');
+      article.className =
+        'log-entry log-entry--reflection' +
+        (selected ? ' log-entry--selected' : '');
+      article.setAttribute('role', 'listitem');
+      article.dataset.reflectionId = entry.id;
+
+      article.innerHTML =
+        '<div class="log-entry__meta">' +
+          '<span class="log-entry__select-mark" aria-hidden="true"></span>' +
+          '<p class="log-entry__date">' + formatLogDate(entry.date) + '</p>' +
+          '<p class="log-entry__deck">' + deckIcon + deckLabel + '</p>' +
+          '<button type="button" class="log-entry__delete" aria-label="Delete reflection">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">' +
+              '<path d="M18 6L6 18M6 6l12 12"/>' +
+            '</svg>' +
+          '</button>' +
+        '</div>' +
+        '<p class="log-entry__anchor"></p>' +
+        '<button type="button" class="log-entry__prompt-toggle" aria-expanded="false">Show prompt</button>' +
+        '<p class="log-entry__prompt"></p>' +
+        '<p class="log-entry__response"></p>';
+
+      article.querySelector('.log-entry__anchor').textContent = anchorLabel;
+      article.querySelector('.log-entry__prompt').textContent = entry.prompt;
+      article.querySelector('.log-entry__response').textContent = entry.response;
+
+      if (compileMode) {
+        article.addEventListener('click', (event) => {
+          if (event.target.closest('.log-entry__delete')) return;
+          if (event.target.closest('.log-entry__prompt-toggle')) return;
+          toggleCompileSelection(entry.id);
+        });
+      }
+
+      article
+        .querySelector('.log-entry__delete')
+        .addEventListener('click', (event) => {
+          event.stopPropagation();
+          deleteReflection(entry.id);
+        });
+
+      return article;
+    }
+
+    function buildDocumentLogEntry(doc) {
+      const article = document.createElement('article');
+      article.className = 'log-entry log-entry--document';
+      article.setAttribute('role', 'listitem');
+      article.dataset.documentId = doc.id;
+
+      const countLabel =
+        (doc.reflectionCount || (doc.reflectionIds && doc.reflectionIds.length) || 0) +
+        ' reflection' +
+        ((doc.reflectionCount || 0) === 1 ? '' : 's');
+
+      article.innerHTML =
+        '<div class="log-entry__meta">' +
+          '<p class="log-entry__date">' + formatLogDate(doc.date) + '</p>' +
+          '<p class="log-entry__deck">Document</p>' +
+        '</div>' +
+        '<p class="log-entry__anchor">Compiled ' + countLabel + '</p>' +
+        '<button type="button" class="log-entry__prompt-toggle" aria-expanded="false">Preview document</button>' +
+        '<p class="log-entry__doc-preview"></p>' +
+        '<div class="log-entry__doc-actions">' +
+          '<button type="button" class="btn btn-secondary log-entry__doc-download">Download .md</button>' +
+        '</div>';
+
+      const preview = article.querySelector('.log-entry__doc-preview');
+      preview.textContent = doc.markdown || '';
+
+      const filename =
+        'design-buddy-reflections-' + doc.date + '.md';
+      article
+        .querySelector('.log-entry__doc-download')
+        .addEventListener('click', () => {
+          downloadMarkdown(doc.markdown || '', filename);
+        });
+
+      return article;
+    }
+
+    function getHistoryTimeline() {
+      const items = [];
+      reflections.forEach((entry, index) => {
+        const rank = String(reflections.length - index).padStart(6, '0');
+        items.push({
+          kind: 'reflection',
+          sortKey: (entry.date || '') + '-r' + rank,
+          entry
+        });
+      });
+      documents.forEach((doc, index) => {
+        const rank = String(documents.length - index).padStart(6, '0');
+        const timeKey = doc.createdAt || doc.date + 'T12:00:00';
+        items.push({
+          kind: 'document',
+          sortKey: timeKey + '-d' + rank,
+          entry: doc
+        });
+      });
+      items.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
+      return items;
+    }
+
+    function startNewReflectionFromLog() {
+      if (compileMode) return;
+      preselectedDeck = getExclusiveDeck();
+      appState.response = '';
+      view3Response.value = '';
+      hideView(view5);
+      showView(view1);
+    }
+
+    function continueReflectingFromSaved() {
+      appState.response = '';
+      view3Response.value = '';
+      hideView(view4);
+      showView(view3);
+      renderView3();
+    }
+
     function requestReflectionsFromPlugin() {
       parent.postMessage({ pluginMessage: { type: 'get-reflections' } }, '*');
     }
@@ -1806,44 +2308,28 @@
 
     function renderLog() {
       view5List.innerHTML = '';
+      view5List.appendChild(buildStartNewCard());
 
-      if (reflections.length === 0) {
+      const hasHistory = reflections.length > 0 || documents.length > 0;
+      if (!hasHistory) {
         view5Empty.classList.remove('view-5__empty--hidden');
-        return;
+      } else {
+        view5Empty.classList.add('view-5__empty--hidden');
       }
 
-      view5Empty.classList.add('view-5__empty--hidden');
-
-      reflections.forEach((entry) => {
-        const deckKey = DECK_KEY_FROM_STORED[entry.deck] || 'Inspiration';
-        const deckLabel = DECK_LABELS[deckKey] || entry.deck;
-        const deckIcon = DECK_INDICATORS[deckKey] || '';
-        const anchorLabel =
-          (entry.anchor && entry.anchor.value) || 'Untitled anchor';
-
-        const article = document.createElement('article');
-        article.className = 'log-entry';
-        article.setAttribute('role', 'listitem');
-
-        article.innerHTML =
-          '<div class="log-entry__meta">' +
-            '<p class="log-entry__date">' + formatLogDate(entry.date) + '</p>' +
-            '<p class="log-entry__deck">' + deckIcon + deckLabel + '</p>' +
-          '</div>' +
-          '<p class="log-entry__anchor"></p>' +
-          '<button type="button" class="log-entry__prompt-toggle" aria-expanded="false">Show prompt</button>' +
-          '<p class="log-entry__prompt"></p>' +
-          '<p class="log-entry__response"></p>';
-
-        article.querySelector('.log-entry__anchor').textContent = anchorLabel;
-        article.querySelector('.log-entry__prompt').textContent = entry.prompt;
-        article.querySelector('.log-entry__response').textContent = entry.response;
-
-        view5List.appendChild(article);
+      getHistoryTimeline().forEach((item) => {
+        if (item.kind === 'reflection') {
+          view5List.appendChild(buildReflectionLogEntry(item.entry));
+        } else {
+          view5List.appendChild(buildDocumentLogEntry(item.entry));
+        }
       });
+
+      updateCompileConfirmState();
     }
 
     function openView5Log() {
+      exitCompileMode();
       renderLog();
       hideView(view4);
       showView(view5);
@@ -2277,7 +2763,10 @@
       }
 
       if (msg.type === 'reflections-loaded') {
-        setReflections(msg.data);
+        setHistory(msg.data, msg.documents);
+        if (!view5.classList.contains('view--hidden')) {
+          renderLog();
+        }
         return;
       }
 
@@ -2328,6 +2817,15 @@
       };
       appState.anchorTitle = anchorValue;
       hideView(view1);
+
+      if (preselectedDeck) {
+        selectedDeck = preselectedDeck;
+        preselectedDeck = null;
+        initView2();
+        goToView2b();
+        return;
+      }
+
       initView2();
       showView(view2);
     });
@@ -2371,26 +2869,51 @@
     view3Response.addEventListener('input', updateView3SaveState);
     view3Save.addEventListener('click', saveReflection);
 
-    view4Close.addEventListener('click', closePlugin);
     view4Log.addEventListener('click', openView5Log);
+    view4Continue.addEventListener('click', continueReflectingFromSaved);
 
     view5Back.addEventListener('click', () => {
+      exitCompileMode();
       hideView(view5);
       showView(view4);
+    });
+
+    view5CompileToggle.addEventListener('click', () => {
+      if (compileMode) {
+        exitCompileMode();
+        renderLog();
+        return;
+      }
+      enterCompileMode();
+    });
+
+    view5CompileConfirm.addEventListener('click', () => {
+      if (!compileMode || compileSelectedIds.size === 0) return;
+      const selected = reflections.filter((r) => compileSelectedIds.has(r.id));
+      const markdown = compileReflectionsMarkdown(selected);
+      const ids = selected.map((r) => r.id);
+      persistCompiledDocument(markdown, ids);
+      exitCompileMode();
     });
 
     view5List.addEventListener('click', (event) => {
       const toggle = event.target.closest('.log-entry__prompt-toggle');
       if (!toggle) return;
       const entry = toggle.closest('.log-entry');
+      if (!entry) return;
+
+      if (entry.classList.contains('log-entry--document')) {
+        const previewEl = entry.querySelector('.log-entry__doc-preview');
+        const expanded = previewEl.classList.toggle('log-entry__doc-preview--visible');
+        toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        toggle.textContent = expanded ? 'Hide preview' : 'Preview document';
+        return;
+      }
+
       const promptEl = entry.querySelector('.log-entry__prompt');
       const expanded = promptEl.classList.toggle('log-entry__prompt--visible');
       toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       toggle.textContent = expanded ? 'Hide prompt' : 'Show prompt';
-    });
-    view4Document.addEventListener('click', () => {
-      hideView(view4);
-      showView(view6);
     });
 
   </script>

@@ -7,61 +7,82 @@
 
 ## What has been built and is working (verified)
 
-### Steps 1–3 (logged in BUILDLOG.md; user confirmed commits through design system and prompts.json)
+### Foundation (Steps 1–3)
 
 | Step | Status | Notes |
 |------|--------|-------|
-| 1. `manifest.json` + `code.js` scaffold | Working | Plugin opens; panel **360×480** (see deviations) |
-| 2. Design system in `ui.html` | Working | CSS variables, Figtree + Amatic SC, base components; smoke-test block was later removed |
-| 3. `prompts.json` | Working | 44 deck prompts (20 Inspiration / 12 Connections / 12 Interfacing) + 3 thread strings; valid JSON |
+| 1. `manifest.json` + `code.js` scaffold | Working | Panel **360×480**; plugin opens and closes |
+| 2. Design system in `ui.html` | Working | CSS variables, Figtree + Amatic SC (CDN), `.btn`, `.buddy-card`, nav patterns |
+| 3. `prompts.json` | Working | 20 Inspiration / 12 Connections / 12 Interfacing + 3 thread strings; user may edit source file |
 
-### Step 4 — View 1 (Anchor) — implemented; commit may be pending
+### View 1 — Anchor
 
-- Launch loading animation (~1.5s): orbiting deck shapes (triangle, hexagon, square, dot), then fade to View 1
-- Copy: heading *"What stayed with you today?"*, subtext about selecting frame/component/token
-- **Selection via `figma.on('selectionchange')` in `code.js`** — exports PNG preview as base64 when possible; no button click required
-- Display-only CTA: *"Click any frame in your file"*
-- On selection: preview region (image or fallback icon + name), editable anchor name field, *Remove selection*
-- `anchorCommitted` flag so Figma deselecting when clicking the plugin UI does not clear anchor before Continue
-- Right arrow (bottom right) enabled when anchor is committed; navigates to View 2
-- **Fix verified:** `.view--hidden { display: none !important; }` so View 1 actually hides when navigating (`.view-1` / `.view-2` `display: flex` was overriding)
+- Loading animation (~1.5s) with orbiting deck shapes
+- Copy: *"What stayed with you today?"* + frame/component/token subtext
+- `figma.on('selectionchange')` in `code.js` → PNG preview (base64) or fallback icon + name
+- Editable anchor name; *Remove selection*; `anchorCommitted` prevents accidental clear when clicking UI
+- Nav arrow (bottom right) → View 2 when anchor committed
 
-### Step 5 — View 2 + View 2b — implemented; user testing ongoing
+### View 2 — Draw (deck pick)
 
-**View 2 (deck pick):**
+- **2×2 grid** of deck cards (**120×170px** each), centered, padded; **no view scroll**
+- Tap deck or **Surprise me** → **auto-advances to View 2b** (no continue arrow on View 2)
+- Thread deck locked until `reflectionCount >= 3` (wired to saved reflections count)
+- Surprise me button width matches grid (**248px**)
 
-- Four decks stacked vertically as portrait playing cards (~2:1 height:width, centered, max-width ~108px)
-- Deck SVG indicators + one-line descriptions
-- Thread card fourth in stack; greyed/disabled until `reflectionCount >= 3` (`setReflectionCount()` exists; storage not wired — always 0)
-- *Surprise me* row with dice icon (muted, centered, no border) — selects random deck (same as tapping a deck)
-- Right arrow enabled only after a deck is selected (highlight state on card)
-- Arrow advances to **View 2b** (does not draw on deck tap)
+### View 2b — Drawn prompt
 
-**View 2b (drawn prompt):**
+- **Buddy card** **216×306px** with deck badge **on** the card
+- Prompt text: Amatic SC, **responsive font sizing** (`fitTextInContainer`) so full question fits without crop
+- **Context** button on card front → **flip animation** shows helper text on card back (**Prompt** button flips back); hidden for Thread / no `helper_text`
+- **Redraw** max 2 per visit; **Surprise me** locks screen (hides Redraw, Surprise me, Back); **Continue** → View 3
+- Bottom **`.view-nav`**: Back (to View 2) + Continue (to View 3), not overlapping action row
+- **Preview mode** from View 3 card tab: View 2b without Redraw/Surprise/Back; Continue returns to Reflect
 
-- Deck indicator (shape + label) at top
-- Bordered prompt **card** with draw animation (~500ms fade/slide/scale)
-- Prompt text from prompts deck (Amatic SC via `.text-prompt`)
-- **Redraw** + **Surprise me** as horizontal `btn btn-secondary` row
-- Redraw: same deck, max 2 redraws then Redraw hidden
-- Surprise me (2b): random deck, resets redraw count, redraws
-- Right arrow → View 3 stub (*"Reflect — Step 6"*)
+### View 3 — Reflect
 
-**Prompts loading:**
+- Muted anchor, deck indicator above prompt, prompt (medium), **Context** box below prompt (full text, no scroll)
+- Large reflection textarea; **Save reflection**
+- Bottom-right tabs: **frame** → View 1 (return via nav arrow); **card** → View 2b preview
+- **"Earlier you noted:"** when a prior reflection exists (first sentence of newest saved entry)
 
-- `fetch('./prompts.json')` fails in Figma UI iframe (blank View 2b was reported)
-- **`prompts-data.js` added** — `window.__DESIGN_BUDDY_PROMPTS__` loaded via `<script src="prompts-data.js">` in `ui.html`
-- Regenerate when `prompts.json` changes:
+### View 4 — Saved
+
+- Message: *"Saved. See you tomorrow."*
+- **See all reflections** → View 5; **Generate document** → View 6 stub; **Close** → `figma.closePlugin()`
+
+### View 5 — Log
+
+- Scrollable list (View 5 only scroll), newest first
+- Each entry: date, deck indicator + label, anchor, expandable prompt, full response
+- **Back** → View 4
+
+### Storage — `figma.clientStorage` (Steps 10–11 effectively done)
+
+- **Key:** `reflections` (array, newest first via `unshift`)
+- **On launch:** `code.js` posts `reflections-loaded` to UI
+- **On save:** UI sends `save-reflection` → persisted → `reflections-loaded` + `save-success`
+- **On request:** `get-reflections` reloads from storage
+- Reflections **survive plugin close/reopen** (user requirement)
+
+### Prompts loading
+
+- **`prompts.json` is embedded in `code.js`** as `PROMPTS_DATA` (not loaded via UI `fetch`)
+- After editing `prompts.json`, run:
   ```powershell
-  node -e "const fs=require('fs'); const p=fs.readFileSync('prompts.json','utf8'); fs.writeFileSync('prompts-data.js', 'window.__DESIGN_BUDDY_PROMPTS__ = ' + p + ';\n');"
+  node scripts/embed-prompts-in-code.js
   ```
+  Then reload plugin in Figma.
 
-### `code.js` (current)
+### `code.js` (current responsibilities)
 
 - `figma.showUI` 360×480
-- `selectionchange` → `selection` / `selection-cleared` messages (with PNG export + fallback)
-- No `get-selection` onmessage handler (removed)
-- No `close` handler (native panel close only)
+- Post `prompts-loaded` on init; handle `get-prompts`
+- `selectionchange` → selection / selection-cleared (with PNG export)
+- `loadReflections` / `saveReflections` via `figma.clientStorage`
+- `save-reflection`, `get-reflections`, `reflections-loaded`, `save-success`
+- `close` → `figma.closePlugin()`
+- Regenerated by `scripts/embed-prompts-in-code.js` (includes prompts + reflection handlers)
 
 ---
 
@@ -69,32 +90,27 @@
 
 | Item | State |
 |------|--------|
-| **View 2 / View 2b** | Last rework addressed blank prompt, playing-card layout, dice icon, secondary CTAs, card animation. **Needs full Figma re-test** after reload |
-| **Commits** | BUILDLOG ends at Step 4 start. View 1, View 2, `prompts-data.js`, and fixes may be **uncommitted** — confirm with `git status` |
-| **View 3 stub** | Placeholder only; `appState` receives `anchor`, `deck`, `prompt`, `helperText` on 2b → 3 navigation but View 3 does not display them |
+| **View 6 — Document generation** | **Stub only** ("Document — Step 9"). User approved View 4; View 5 + persistence implemented; **View 6 is next** |
+| **Git / commits** | BUILDLOG has session entries; **confirm `git status`** — much work may be uncommitted |
+| **`prompts-data.js`** | Legacy file in repo; **UI no longer uses it** (prompts come from `code.js`). Safe to ignore or delete only if user approves |
+| **Figma verification** | User confirmed View 4; persistence and View 5 should be re-tested after reload |
 
 ---
 
 ## What has not been started yet
 
-Per `cursorrules` §13 build order:
+Per `cursorrules` §13 build order (remaining):
 
-6. View 3 — Reflect  
-7. View 4 — Saved  
-8. View 5 — Log  
-9. View 6 — Document generation  
-10. Local storage: save  
-11. Local storage: retrieve + builds-on-previous prefix  
-12. Markdown export  
-13. AI API call  
-14. Notion integration (stretch goal)
+9. **View 6 — Document generation** (markdown download UI + compile logic)  
+12. **Markdown export** (may overlap with View 6 — follow brief View 6 spec)  
+13. **AI API call** (after UI complete)  
+14. **Notion integration** (stretch goal)
 
 Also not done:
 
 - `README.md`
-- Wiring `get-reflections` / Thread unlock from real storage
-- Helper text UI (eye toggle was built then **removed** per user; `helperText` still stored in `appState` for future use)
-- Removing or syncing `prompts-data.js` automatically when `prompts.json` edits (manual regen only)
+- Thread prompt `{past_excerpt}` substitution from last reflection excerpt at draw time
+- `aiPrompt` field on save (AI step)
 
 ---
 
@@ -102,26 +118,28 @@ Also not done:
 
 | Topic | Brief / rules | Actual | Why |
 |-------|----------------|--------|-----|
-| Panel size | 240×480 (`cursorrules` §12; brief snippet 380×600) | **360×480** in `code.js` | User approved 360×480 for scaffold |
-| View 1 copy | *"What were you working on today?"* / *Design Buddy* | *"What stayed with you today?"* + frame/component/token subtext | User-specified View 1 rework |
-| View 1 input | Button + optional textarea | Selection-change only + editable frame name; no freeform textarea | User rework; either/or removed |
-| View 2 flow | Select deck → draw prompt on same view | **View 2** pick deck → arrow → **View 2b** draw | User rework |
-| Prompt count | "18 prompts" in build order text | **44** deck prompts in `prompts.json` | User approved full brief deck |
-| Thread unlock | Brief: 3+ reflections | Code: `reflectionCount >= 3` | User said ">3" then card copy "after 3 reflections" — implemented as **>= 3** |
-| Prompts file | `prompts.json` only | **`prompts-data.js`** duplicate for UI load | Figma UI `fetch` unreliable |
-| Context / helper | Eye icon for helper text on prompt | **Removed** from View 2b | User: not in brief, layout breakage |
-| Google Fonts | — | Figtree + Amatic SC via CDN | User approved Step 2 |
+| Panel size | Brief snippet 380×600; rules §0 says 240×480 | **360×480** | User-approved scaffold size; `cursorrules` §12 updated to 360×480 |
+| View 1 copy / input | Brief default copy; button + textarea | *"What stayed with you today?"*; selection-change only + rename | User rework |
+| View 2 flow | Select deck on same screen | Tap deck → **immediate View 2b**; no View 2 continue arrow | User request |
+| View 2 layout | Brief 2×2 grid | **2×2 grid** 120×170, padded, Surprise me 248px wide | User request |
+| Prompt count label | "18 prompts" in build order text | **44** deck prompts in JSON | Full brief deck |
+| Thread unlock | 3+ reflections | **`reflectionCount >= 3`** | User copy "after 3 reflections" |
+| Prompts in UI | `prompts.json` / fetch | **`PROMPTS_DATA` in `code.js`** | Figma UI cannot reliably fetch sibling files |
+| View 2b helper | Eye toggle (removed earlier) | **Context flip button** on card | User request |
+| View 2b card size | User once specified 265×365 | **216×306** (same ratio) | Fit panel without overlap |
+| View 5 scroll | No scroll in views | **View 5 list scrolls** | Brief requires scrollable log; only this view scrolls |
+| Storage timing | Build order steps 10–11 after View 6 | **Implemented early** | User: reflections must persist or tool is useless |
 
 ---
 
 ## Unresolved questions and problems
 
-1. **View 2b after latest fixes** — User reported blank card, missing indicator/animation before `prompts-data.js` fix. Re-test: indicator, animated card, prompt text, Redraw, Surprise me (2b), arrow to View 3.
-2. **`prompts-data.js` in Figma** — Confirm `<script src="prompts-data.js">` loads in plugin iframe (sibling file). If not, need `code.js` to post prompts or inline JSON.
-3. **Uncommitted work** — View 1, View 2, `prompts-data.js`, `HANDOVER.md` may need commits; user controls git.
-4. **`cursorrules` §12 vs 360×480** — Rules still say 240×480; code uses 360×480. Align rules or code with user intent.
-5. **Playing cards in 480px panel** — Four tall cards + surprise row may need scroll on `deck-stack` (`overflow-y: auto` added); verify no overlap with nav arrow.
-6. **June 3 / June 6 milestones** — Views 1–4 and full E2E not met yet.
+1. **View 6** — Implement per brief: description, **Download .md file**, **Connect Notion** greyed ("coming soon"); compile reflections grouped by deck per brief markdown format.
+2. **`prompts-data.js`** — Orphaned; consider removing in a cleanup commit with user approval.
+3. **Uncommitted work** — Run `git status`; suggest commits for Views 3–5, persistence, View 2b polish, `cursorrules` updates.
+4. **Thread deck** — `prompts.thread` strings still contain `{past_excerpt}` placeholder; not substituted at runtime yet.
+5. **June 3 / June 6 milestones** — Views 1–5 largely built; View 6 + AI + E2E still outstanding.
+6. **`cursorrules` §0** — Still says 240×480 in opening paragraph; §12 says 360×480 (minor doc inconsistency).
 
 ---
 
@@ -156,7 +174,7 @@ Break tasks into smallest sub-steps; share breakdown for confirmation; report BU
 
 ### 5. Blast radius — declare before changing
 
-Before multi-file or working-code changes: stop, list files, describe changes and impact, ask confirmation.
+Before multi-file or working-code changes: stop, list files, describe impact, ask confirmation.
 
 ### 6. Never touch working code unprompted
 
@@ -180,30 +198,30 @@ Maintain `BUILDLOG.md`; append after every confirmed commit: `[date] | [commit m
 
 ### 11. Protected files
 
-Never delete/overwrite/modify unless user instructs: `prompts.json`, `.cursorrules`, `BUILDLOG.md`, `design-buddy-cursor-brief.md`. Ask before modifying.
+Never delete/overwrite/modify unless user instructs: `prompts.json`, `cursorrules`, `BUILDLOG.md`, `design-buddy-cursor-brief.md`. Ask before modifying.
 
-### 12. Plugin size is fixed
+### 12. Plugin size and layout (fixed)
 
-Rules say 240×480 in `code.js` — **currently 360×480** (deviation). No scrolling within views where possible; redesign to fit.
+Panel **360×480px**. No scroll inside views except View 5 log list. No overlapping elements.
+
+Buddy cards: deck **120×170px**; prompt **216×306px** (ratio 120∶170). View 2b: Context on card via flip; deck badge on card. View 2b nav: Back + Continue in `.view-nav`. View 2b: max 2 redraws; Surprise me locks Redraw/Surprise/Back. View 2: 248px-wide Surprise me.
 
 ### 13. Build order
 
-1. manifest + code.js scaffold  
-2. Design system  
-3. prompts.json  
-4. View 1 — Anchor  
-5. View 2 — Draw  
-6. View 3 — Reflect  
-7. View 4 — Saved  
-8. View 5 — Log  
+1. manifest + code.js scaffold ✓  
+2. design system ✓  
+3. prompts.json ✓  
+4. View 1 — Anchor ✓  
+5. View 2 — Draw ✓  
+6. View 3 — Reflect ✓  
+7. View 4 — Saved ✓  
+8. View 5 — Log ✓  
 9. View 6 — Document generation  
-10. Local storage: save  
-11. Local storage: retrieve + builds-on-previous prefix  
+10. Local storage: save ✓ (implemented with persistence)  
+11. Local storage: retrieve + builds-on-previous prefix ✓ (partial: load + "Earlier you noted"; thread excerpt substitution pending)  
 12. Markdown export  
 13. AI API call  
 14. Notion (stretch)
-
-UI milestone (June 3): Views 1–4. Full build (June 6): E2E.
 
 ### 14. When to stop and ask vs. proceed
 
@@ -216,14 +234,12 @@ Stop and ask: not in brief; multi-file changes; new dependency; architecture; bu
 ## Next step for the incoming agent (precise)
 
 1. **Read** `cursorrules`, `design-buddy-cursor-brief.md`, and this file.
-2. **Ask user** to reload the plugin in Figma and confirm View 2b: deck indicator visible, prompt card animates with text, Redraw / Surprise me work, arrow reaches View 3 stub.
-3. If View 2b still blank: verify `prompts-data.js` loads; consider `code.js` posting prompts on init; do not duplicate logic without blast-radius approval.
-4. **Confirm git status** — commit pending work if user wants, e.g.:
-   - `feat: View 1 — Anchor (loading, selectionchange, anchor flow)`
-   - `feat: View 2 — Draw (deck pick + View 2b prompt draw)`
-   - `fix: load prompts via prompts-data.js for Figma UI`
-5. **Remove** design-system smoke-test CSS/markup if any remnants remain (already removed from body; confirm).
-6. **Begin Step 6 — View 3 (Reflect)** per brief: show anchor (muted), drawn prompt, optional "Earlier you noted:" from last reflection (storage not wired yet — stub or skip until step 10–11), large reflection textarea, Save reflection button. Break into sub-steps; one file at a time where possible; share breakdown with user first.
+2. **Confirm** `git status` and whether user wants to commit pending work before View 6.
+3. **Begin Step 9 — View 6 (Document generation)** in `ui.html` only first (per one-file rule), unless markdown compile also needs `code.js`:
+   - Sub-step A: Replace View 6 stub with brief copy + **Download .md** button + greyed **Connect Notion**
+   - Sub-step B: Implement `compileReflectionsMarkdown(reflections)` in UI (group by deck per brief format); trigger download via Blob + temporary `<a download>`
+   - Sub-step C: Wire View 4 **Generate document** → View 6; test with 0 and N saved reflections
+4. After View 6: **AI API call** (env key, View 4 optional follow-up question), then **Notion** stretch if time.
 
 ---
 
@@ -232,14 +248,16 @@ Stop and ask: not in brief; multi-file changes; new dependency; architecture; bu
 ```
 mp2/
 ├── manifest.json
-├── code.js
-├── ui.html          (all views + design system + app logic)
-├── prompts.json     (source deck — protected)
-├── prompts-data.js  (UI load copy — regenerate from prompts.json when deck changes)
+├── code.js                    (prompts embedded + clientStorage; regen via script)
+├── ui.html                    (Views 1–5 + stubs 6; all app logic)
+├── prompts.json               (source deck — protected)
+├── scripts/
+│   └── embed-prompts-in-code.js
+├── prompts-data.js            (legacy; unused by UI)
 ├── cursorrules
 ├── design-buddy-cursor-brief.md
 ├── BUILDLOG.md
-└── HANDOVER.md      (this file)
+└── HANDOVER.md                (this file)
 ```
 
 ---
