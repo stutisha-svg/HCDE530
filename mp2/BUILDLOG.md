@@ -13,3 +13,5 @@
 [2026-05-31] | chore: sync prompts.json into code.js | User-edited prompts.json regenerated via embed script | Reload plugin; then View 6
 [2026-06-01] | feat: View 6 export screen + thread excerpt substitution | View 6: full log .md download, Notion stub; Thread prompts use {past_excerpt}; View 4 export entry | Step 13: AI API call
 [2026-06-01] | refactor: merge View 6 into View 5 | Export all .md on Reflections tab; Notion on Documents tab; View 4 simplified | Step 13: AI API call
+[2026-06-01] | feat: View 5 log hub — tabs, compile, documents, modals | Reflections/Documents tabs; compile to new/existing doc; delete/restore/rename/preview; start-new card; M3 icons; delete confirm modal | refactor: merge View 6 into View 5
+[2026-06-01] | feat: View 4 polish + thread excerpt + anchorImage on save | Go back reflecting preserves text; {past_excerpt} in Thread deck; frame PNG stored on save | Confirm git status; Step 13: AI API call

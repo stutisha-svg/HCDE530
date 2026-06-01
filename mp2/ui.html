@@ -1288,10 +1288,6 @@
       display: none;
     }
 
-    .view-5--compile-mode #view-5-download-all {
-      display: none;
-    }
-
     .log-entry--reflection .log-entry__meta {
       display: flex;
       align-items: center;
@@ -1707,11 +1703,14 @@
       display: none;
     }
 
-    .view-5__notion-label {
+    .view-5__notion-wrap {
       display: block;
-      font-size: var(--text-xs);
-      color: var(--color-text-muted);
-      margin-top: 2px;
+      width: 100%;
+      cursor: not-allowed;
+    }
+
+    .view-5__notion-wrap .btn:disabled {
+      pointer-events: none;
     }
 
     .log-entry__icon-btn {
@@ -2108,13 +2107,11 @@
       <div id="view-5-footer-reflections" class="view-5__footer-panel">
         <button type="button" id="view-5-compile-toggle" class="btn btn-secondary btn-full">Compile document</button>
         <button type="button" id="view-5-compile-confirm" class="btn btn-primary btn-full view-5__compile-confirm view-5__compile-confirm--hidden">Compile selected</button>
-        <button type="button" id="view-5-download-all" class="btn btn-secondary btn-full">Download all as .md</button>
       </div>
       <div id="view-5-footer-documents" class="view-5__footer-panel view-5__footer-panel--hidden">
-        <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" disabled>
-          Connect Notion
-          <span class="view-5__notion-label">Coming soon</span>
-        </button>
+        <span class="view-5__notion-wrap" title="Coming soon">
+          <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" disabled aria-label="Connect Notion — coming soon">Connect Notion</button>
+        </span>
       </div>
     </div>
   </div>
@@ -2204,7 +2201,6 @@
     const view4Continue = document.getElementById('view-4-continue');
     const view5FooterReflections = document.getElementById('view-5-footer-reflections');
     const view5FooterDocuments = document.getElementById('view-5-footer-documents');
-    const view5DownloadAll = document.getElementById('view-5-download-all');
     const view5Back = document.getElementById('view-5-back');
     const view5TabReflections = document.getElementById('view-5-tab-reflections');
     const view5TabDocuments = document.getElementById('view-5-tab-documents');
@@ -2496,17 +2492,6 @@
       return template.replace(/\{past_excerpt\}/g, excerpt);
     }
 
-    function downloadFullReflectionLog() {
-      if (reflections.length === 0) return;
-      const md = compileReflectionsMarkdown(reflections);
-      const date = new Date().toISOString().slice(0, 10);
-      downloadMarkdown(md, 'design-buddy-reflections-' + date + '.md');
-    }
-
-    function updateView5Footer() {
-      view5DownloadAll.disabled = reflections.length === 0;
-    }
-
     function exitCompileMode() {
       compileMode = false;
       compileSelectedIds = new Set();
@@ -2790,7 +2775,6 @@
       );
       if (!isReflections && compileMode) exitCompileMode();
       renderLog();
-      updateView5Footer();
     }
 
     function deleteReflection(id) {
@@ -3058,7 +3042,6 @@
         }
         view5EmptyDocuments.classList.add('view-5__empty--hidden');
         updateCompileConfirmState();
-        updateView5Footer();
         return;
       }
 
@@ -3071,7 +3054,6 @@
           view5List.appendChild(buildDocumentLogEntry(doc));
         });
       }
-      updateView5Footer();
     }
 
     function openView5Log() {
@@ -3620,8 +3602,6 @@
 
     view4Log.addEventListener('click', openView5Log);
     view4Continue.addEventListener('click', continueReflectingFromSaved);
-
-    view5DownloadAll.addEventListener('click', downloadFullReflectionLog);
 
     view5Back.addEventListener('click', () => {
       exitCompileMode();
