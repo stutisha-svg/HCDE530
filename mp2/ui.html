@@ -276,8 +276,92 @@
     .reveal {
       animation: reveal var(--duration-slow) var(--ease-out) both;
     }
+
+    /* Temporary — removed when View 1 is built */
+    .smoke-test {
+      padding: var(--space-md);
+      height: 100%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+    }
+
+    .smoke-test .textarea-reflection {
+      min-height: 48px;
+    }
+
+    .smoke-test__row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      align-items: center;
+    }
+
+    .smoke-test__decks {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
   </style>
 </head>
 <body>
+  <!-- Temporary smoke test — remove when View 1 is built -->
+  <div class="smoke-test">
+    <p class="text-muted">Design system smoke test</p>
+
+    <h1 class="text-title">Design Buddy</h1>
+    <p class="text-body">What were you working on today?</p>
+    <p class="text-muted">Muted supporting text</p>
+
+    <div class="smoke-test__decks">
+      <span class="deck-label text-label">
+        <span class="deck-indicator">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,1 11,11 1,11" fill="#C8973A"/></svg>
+        </span>
+        Inspiration
+      </span>
+      <span class="deck-label text-label">
+        <span class="deck-indicator">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,0.5 11,3.25 11,8.75 6,11.5 1,8.75 1,3.25" fill="#4A8C6F"/></svg>
+        </span>
+        Connections
+      </span>
+      <span class="deck-label text-label">
+        <span class="deck-indicator">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><rect x="1" y="1" width="10" height="10" fill="#4A7FA5"/></svg>
+        </span>
+        Interfacing
+      </span>
+      <span class="deck-label text-label">
+        <span class="deck-indicator">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="4" fill="#C86E3A"/></svg>
+        </span>
+        Thread
+      </span>
+    </div>
+
+    <div class="card card-deck">
+      <span class="deck-label text-label">
+        <span class="deck-indicator">
+          <svg viewBox="0 0 12 12" aria-hidden="true"><polygon points="6,1 11,11 1,11" fill="#C8973A"/></svg>
+        </span>
+        Inspiration
+      </span>
+      <p class="text-muted" style="margin:4px 0 0">Explore ideas and references</p>
+    </div>
+
+    <div class="card card-prompt reveal">
+      <p class="text-prompt">Where did you use a familiar metaphor today?</p>
+    </div>
+
+    <textarea class="textarea-reflection" placeholder="Write your reflection…"></textarea>
+
+    <div class="smoke-test__row">
+      <button type="button" class="btn btn-primary">Continue</button>
+      <button type="button" class="btn btn-secondary">See all</button>
+      <button type="button" class="btn btn-primary" disabled>Disabled</button>
+    </div>
+  </div>
 </body>
 </html>
