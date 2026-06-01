@@ -4,11 +4,5 @@
   <meta charset="utf-8">
 </head>
 <body>
-  <button id="close-btn">Close</button>
-  <script>
-    document.getElementById('close-btn').addEventListener('click', () => {
-      parent.postMessage({ pluginMessage: { type: 'close' } }, '*');
-    });
-  </script>
 </body>
 </html>
