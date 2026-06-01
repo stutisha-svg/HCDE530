@@ -1192,6 +1192,158 @@
       flex-shrink: 0;
     }
 
+    /* View 5 — Log */
+    .view-5 {
+      display: flex;
+      flex-direction: column;
+      padding: var(--space-md) var(--space-lg);
+      overflow: hidden;
+    }
+
+    .view-5__header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      flex-shrink: 0;
+      margin-bottom: var(--space-sm);
+    }
+
+    .view-5__back {
+      flex-shrink: 0;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: var(--font-ui);
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .view-5__back:hover {
+      color: var(--color-text);
+    }
+
+    .view-5__heading {
+      margin: 0;
+      flex: 1;
+      font-size: var(--text-md);
+      font-weight: var(--weight-semibold);
+      line-height: var(--leading-tight);
+    }
+
+    .view-5__empty {
+      margin: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: var(--text-sm);
+    }
+
+    .view-5__empty--hidden {
+      display: none;
+    }
+
+    .view-5__list {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      padding-bottom: var(--space-xs);
+    }
+
+    .log-entry {
+      flex-shrink: 0;
+      padding: var(--space-md);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background-color: var(--color-surface);
+    }
+
+    .log-entry__meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-xs);
+    }
+
+    .log-entry__date {
+      margin: 0;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+    }
+
+    .log-entry__deck {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin: 0;
+      font-size: var(--text-xs);
+      font-weight: var(--weight-medium);
+      color: var(--color-text);
+    }
+
+    .log-entry__deck .deck-indicator {
+      width: 9px;
+      height: 9px;
+    }
+
+    .log-entry__anchor {
+      margin: 0 0 var(--space-sm);
+      font-size: var(--text-sm);
+      font-weight: var(--weight-medium);
+      color: var(--color-text);
+      word-break: break-word;
+    }
+
+    .log-entry__prompt-toggle {
+      display: block;
+      width: 100%;
+      margin: 0 0 var(--space-xs);
+      padding: 0;
+      border: none;
+      background: none;
+      font-family: var(--font-ui);
+      font-size: var(--text-xs);
+      font-weight: var(--weight-medium);
+      color: var(--color-text-muted);
+      text-align: left;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    .log-entry__prompt-toggle:hover {
+      color: var(--color-text);
+    }
+
+    .log-entry__prompt {
+      margin: 0 0 var(--space-sm);
+      font-size: var(--text-sm);
+      line-height: var(--leading-normal);
+      color: var(--color-text-muted);
+      display: none;
+    }
+
+    .log-entry__prompt--visible {
+      display: block;
+    }
+
+    .log-entry__response {
+      margin: 0;
+      font-size: var(--text-sm);
+      line-height: var(--leading-relaxed);
+      color: var(--color-text);
+      word-break: break-word;
+    }
+
     .view-3__tabs {
       position: absolute;
       right: var(--space-lg);
@@ -1451,10 +1603,13 @@
     </div>
   </div>
 
-  <div id="view-5" class="view view--hidden">
-    <div class="view-stub">
-      <p class="text-muted">Log — Step 8</p>
+  <div id="view-5" class="view view-5 view--hidden">
+    <div class="view-5__header">
+      <button type="button" id="view-5-back" class="view-5__back">Back</button>
+      <h2 class="view-5__heading">Reflections</h2>
     </div>
+    <p id="view-5-empty" class="view-5__empty view-5__empty--hidden text-muted">No reflections yet.</p>
+    <div id="view-5-list" class="view-5__list" role="list"></div>
   </div>
 
   <div id="view-6" class="view view--hidden">
@@ -1483,6 +1638,9 @@
     const view4Close = document.getElementById('view-4-close');
     const view4Log = document.getElementById('view-4-log');
     const view4Document = document.getElementById('view-4-document');
+    const view5Back = document.getElementById('view-5-back');
+    const view5Empty = document.getElementById('view-5-empty');
+    const view5List = document.getElementById('view-5-list');
     const view3Anchor = document.getElementById('view-3-anchor');
     const view3Earlier = document.getElementById('view-3-earlier');
     const view3EarlierText = document.getElementById('view-3-earlier-text');
@@ -1529,6 +1687,14 @@
       thread: 'Thread'
     };
 
+    const DECK_KEY_FROM_STORED = {
+      inspiration: 'Inspiration',
+      connections: 'Connections',
+      interfacing: 'Interfacing',
+      thread: 'thread'
+    };
+
+    let reflections = [];
     let selection = null;
     let anchorTitle = '';
     let anchorCommitted = false;
@@ -1579,6 +1745,99 @@
     function setReflectionCount(count) {
       reflectionCount = count;
       updateThreadCard();
+    }
+
+    function formatLogDate(dateStr) {
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+    }
+
+    function firstSentence(text) {
+      const match = String(text).match(/^[^.!?]+[.!?]?/);
+      return match ? match[0].trim() : String(text).trim();
+    }
+
+    function updateReflectionDerivedState() {
+      reflectionCount = reflections.length;
+      updateThreadCard();
+      if (reflections.length > 0) {
+        lastReflectionExcerpt = firstSentence(reflections[0].response);
+      } else {
+        lastReflectionExcerpt = null;
+      }
+    }
+
+    function buildReflectionEntry() {
+      const anchorValue =
+        (appState.anchor && appState.anchor.value) ||
+        appState.anchorTitle ||
+        '';
+      return {
+        id:
+          typeof crypto !== 'undefined' && crypto.randomUUID
+            ? crypto.randomUUID()
+            : String(Date.now()) + '-' + Math.random().toString(36).slice(2, 8),
+        date: new Date().toISOString().slice(0, 10),
+        anchor: appState.anchor
+          ? {
+              type: appState.anchor.type || 'frame',
+              value: anchorValue
+            }
+          : { type: 'text', value: anchorValue },
+        deck: appState.deck || 'inspiration',
+        prompt: appState.prompt || '',
+        response: appState.response || '',
+        helperText: appState.helperText || null
+      };
+    }
+
+    function renderLog() {
+      view5List.innerHTML = '';
+
+      if (reflections.length === 0) {
+        view5Empty.classList.remove('view-5__empty--hidden');
+        return;
+      }
+
+      view5Empty.classList.add('view-5__empty--hidden');
+
+      reflections.forEach((entry) => {
+        const deckKey = DECK_KEY_FROM_STORED[entry.deck] || 'Inspiration';
+        const deckLabel = DECK_LABELS[deckKey] || entry.deck;
+        const deckIcon = DECK_INDICATORS[deckKey] || '';
+        const anchorLabel =
+          (entry.anchor && entry.anchor.value) || 'Untitled anchor';
+
+        const article = document.createElement('article');
+        article.className = 'log-entry';
+        article.setAttribute('role', 'listitem');
+
+        article.innerHTML =
+          '<div class="log-entry__meta">' +
+            '<p class="log-entry__date">' + formatLogDate(entry.date) + '</p>' +
+            '<p class="log-entry__deck">' + deckIcon + deckLabel + '</p>' +
+          '</div>' +
+          '<p class="log-entry__anchor"></p>' +
+          '<button type="button" class="log-entry__prompt-toggle" aria-expanded="false">Show prompt</button>' +
+          '<p class="log-entry__prompt"></p>' +
+          '<p class="log-entry__response"></p>';
+
+        article.querySelector('.log-entry__anchor').textContent = anchorLabel;
+        article.querySelector('.log-entry__prompt').textContent = entry.prompt;
+        article.querySelector('.log-entry__response').textContent = entry.response;
+
+        view5List.appendChild(article);
+      });
+    }
+
+    function openView5Log() {
+      renderLog();
+      hideView(view4);
+      showView(view5);
     }
 
     function clearDeckSelection() {
@@ -1919,6 +2178,8 @@
       const response = view3Response.value.trim();
       if (!response) return;
       appState.response = response;
+      reflections.unshift(buildReflectionEntry());
+      updateReflectionDerivedState();
       hideView(view3);
       showView(view4);
     }
@@ -2090,16 +2351,28 @@
     view3Save.addEventListener('click', saveReflection);
 
     view4Close.addEventListener('click', closePlugin);
-    view4Log.addEventListener('click', () => {
-      hideView(view4);
-      showView(view5);
+    view4Log.addEventListener('click', openView5Log);
+
+    view5Back.addEventListener('click', () => {
+      hideView(view5);
+      showView(view4);
+    });
+
+    view5List.addEventListener('click', (event) => {
+      const toggle = event.target.closest('.log-entry__prompt-toggle');
+      if (!toggle) return;
+      const entry = toggle.closest('.log-entry');
+      const promptEl = entry.querySelector('.log-entry__prompt');
+      const expanded = promptEl.classList.toggle('log-entry__prompt--visible');
+      toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      toggle.textContent = expanded ? 'Hide prompt' : 'Show prompt';
     });
     view4Document.addEventListener('click', () => {
       hideView(view4);
       showView(view6);
     });
 
-    setReflectionCount(0);
+    updateReflectionDerivedState();
   </script>
 </body>
 </html>
