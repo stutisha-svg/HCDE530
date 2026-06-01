@@ -74,6 +74,7 @@
       --duration-slow: 400ms;
       --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
       --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+      --reveal-distance: 8px;
     }
 
     *,
@@ -254,6 +255,26 @@
       display: block;
       width: 100%;
       height: 100%;
+    }
+
+    .transition-base {
+      transition: opacity var(--duration-normal) var(--ease-out),
+                  transform var(--duration-normal) var(--ease-out);
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateY(var(--reveal-distance));
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .reveal {
+      animation: reveal var(--duration-slow) var(--ease-out) both;
     }
   </style>
 </head>
