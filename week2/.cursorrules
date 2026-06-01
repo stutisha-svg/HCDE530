@@ -26,6 +26,7 @@ mp2/code.js
 mp2/cursorrules
 mp2/design-buddy-cursor-brief.md
 mp2/manifest.json
+mp2/prompts.json
 mp2/ui.html
 tools/update_cursorrules_tree.py
 week2/.cursorrules
