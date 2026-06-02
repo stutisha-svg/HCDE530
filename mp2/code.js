@@ -107,12 +107,20 @@ figma.ui.onmessage = async (msg) => {
 
   if (msg.type === "update-document") {
     const documentId = msg.documentId;
-    const name = typeof msg.name === "string" ? msg.name.trim() : "";
-    if (!documentId || !name) return;
+    if (!documentId) return;
     const docs = await loadDocuments();
     const doc = docs.find((d) => d.id === documentId);
     if (!doc) return;
-    doc.name = name;
+
+    const name = typeof msg.name === "string" ? msg.name.trim() : "";
+    if (name) {
+      doc.name = name;
+    }
+
+    if (msg.patch && typeof msg.patch === "object") {
+      Object.assign(doc, msg.patch);
+    }
+
     doc.updatedAt = new Date().toISOString();
     await saveDocuments(docs);
     await postHistoryToUI();

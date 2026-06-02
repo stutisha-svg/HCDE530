@@ -5,7 +5,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=delete,download,stylus&display=block" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=delete,description,download,stylus&display=block" rel="stylesheet">
   <style>
     :root {
       /* Font families */
@@ -1706,11 +1706,59 @@
     .view-5__notion-wrap {
       display: block;
       width: 100%;
-      cursor: not-allowed;
+      cursor: pointer;
     }
 
     .view-5__notion-wrap .btn:disabled {
       pointer-events: none;
+    }
+
+    .quick-log-fab {
+      position: absolute;
+      right: var(--space-md);
+      bottom: var(--space-md);
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--color-border-strong);
+      border-radius: 999px;
+      background: var(--color-surface);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 40;
+    }
+
+    .quick-log-fab .material-symbols-outlined {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .quick-log-fab__count {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      min-width: 16px;
+      height: 16px;
+      padding: 0 4px;
+      border-radius: 999px;
+      background: var(--color-text);
+      color: var(--color-surface);
+      font-size: 10px;
+      line-height: 16px;
+      text-align: center;
+      font-weight: var(--weight-semibold);
+    }
+
+    .quick-log-fab--hidden {
+      display: none;
+    }
+
+    .log-entry__sync {
+      margin: var(--space-2xs) 0 0;
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
     }
 
     .log-entry__icon-btn {
@@ -2110,11 +2158,16 @@
       </div>
       <div id="view-5-footer-documents" class="view-5__footer-panel view-5__footer-panel--hidden">
         <span class="view-5__notion-wrap" title="Export a document to Notion">
-          <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" aria-label="Connect Notion">Connect Notion</button>
+          <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" aria-label="Export all to Notion">Export all to Notion</button>
         </span>
       </div>
     </div>
   </div>
+
+  <button type="button" id="quick-log-fab" class="quick-log-fab quick-log-fab--hidden" aria-label="Open all reflections">
+    <span class="material-symbols-outlined m3-icon" aria-hidden="true">description</span>
+    <span id="quick-log-fab-count" class="quick-log-fab__count">0</span>
+  </button>
 
   <div id="delete-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" aria-hidden="true">
     <div id="delete-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
@@ -2167,6 +2220,20 @@
       <div class="modal__actions">
         <button type="button" id="restore-modal-cancel" class="btn btn-secondary">Cancel</button>
         <button type="button" id="restore-modal-confirm" class="btn btn-primary">Break apart</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notion-modal" class="modal modal--hidden" role="dialog" aria-modal="true" aria-labelledby="notion-modal-title" aria-hidden="true">
+    <div id="notion-modal-backdrop" class="modal__backdrop" tabindex="-1"></div>
+    <div class="modal__panel">
+      <p id="notion-modal-title" class="modal__title">Export to Notion</p>
+      <p class="modal__message text-muted">Paste your integration token and parent page URL/ID.</p>
+      <input type="password" id="notion-modal-token" class="modal__field" placeholder="ntn_..." />
+      <input type="text" id="notion-modal-page" class="modal__field" placeholder="Notion page URL or page ID" />
+      <div class="modal__actions">
+        <button type="button" id="notion-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="notion-modal-export" class="btn btn-primary">Export</button>
       </div>
     </div>
   </div>
@@ -2235,6 +2302,14 @@
     const deleteModalConfirm = document.getElementById('delete-modal-confirm');
     const deleteModalTitle = document.getElementById('delete-modal-title');
     const deleteModalMessage = document.getElementById('delete-modal-message');
+    const quickLogFab = document.getElementById('quick-log-fab');
+    const quickLogFabCount = document.getElementById('quick-log-fab-count');
+    const notionModal = document.getElementById('notion-modal');
+    const notionModalBackdrop = document.getElementById('notion-modal-backdrop');
+    const notionModalToken = document.getElementById('notion-modal-token');
+    const notionModalPage = document.getElementById('notion-modal-page');
+    const notionModalCancel = document.getElementById('notion-modal-cancel');
+    const notionModalExport = document.getElementById('notion-modal-export');
     const view3Anchor = document.getElementById('view-3-anchor');
     const view3Earlier = document.getElementById('view-3-earlier');
     const view3EarlierText = document.getElementById('view-3-earlier-text');
@@ -2288,8 +2363,6 @@
       thread: 'thread'
     };
     const NOTION_EXPORT_URL = 'https://design-buddy-proxy.vercel.app/api/notion-export';
-    const NOTION_PARENT_ID_KEY = 'design-buddy-notion-parent-page-id';
-    const NOTION_LAST_DOC_KEY = 'design-buddy-notion-last-document-id';
 
     let reflections = [];
     let documents = [];
@@ -2315,7 +2388,7 @@
     let view3ReturnMode = false;
     let pendingHelperText = null;
     let lastReflectionExcerpt = null;
-    let notionSessionToken = '';
+    let pendingNotionDocumentId = null;
 
     const appState = {
       anchor: null,
@@ -2327,10 +2400,21 @@
 
     function showView(el) {
       el.classList.remove('view--hidden');
+      updateQuickLogFabVisibility();
     }
 
     function hideView(el) {
       el.classList.add('view--hidden');
+      updateQuickLogFabVisibility();
+    }
+
+    function updateQuickLogFabCount() {
+      quickLogFabCount.textContent = String(reflectionCount);
+    }
+
+    function updateQuickLogFabVisibility() {
+      const isView5Visible = !view5.classList.contains('view--hidden');
+      quickLogFab.classList.toggle('quick-log-fab--hidden', isView5Visible);
     }
 
     function randomItem(arr) {
@@ -2382,6 +2466,7 @@
     function setReflections(data) {
       reflections = Array.isArray(data) ? data.slice() : [];
       updateReflectionDerivedState();
+      updateQuickLogFabCount();
     }
 
     function setDocuments(data) {
@@ -2391,6 +2476,7 @@
     function setHistory(data, docs) {
       setReflections(data);
       setDocuments(docs);
+      updateQuickLogFabVisibility();
     }
 
     function getExclusiveDeck() {
@@ -2564,116 +2650,55 @@
       return doc.reflectionCount || 0;
     }
 
-    function normalizeNotionPageId(input) {
-      if (!input) return null;
-      const raw = String(input).trim();
-      if (!raw) return null;
-
-      const uuidMatch = raw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
-      if (uuidMatch) {
-        return uuidMatch[0].toLowerCase();
-      }
-
-      const compactMatch = raw.match(/[0-9a-f]{32}/i);
-      if (compactMatch) {
-        const value = compactMatch[0].toLowerCase();
-        return (
-          value.slice(0, 8) +
-          '-' +
-          value.slice(8, 12) +
-          '-' +
-          value.slice(12, 16) +
-          '-' +
-          value.slice(16, 20) +
-          '-' +
-          value.slice(20)
-        );
-      }
-
-      return null;
+    function getNotionExportedIds(doc) {
+      return Array.isArray(doc.notionExportedReflectionIds)
+        ? doc.notionExportedReflectionIds
+        : [];
     }
 
-    function chooseDocumentForNotionExport() {
-      if (!documents.length) return null;
-      if (documents.length === 1) return documents[0];
+    function getPendingNotionReflections(doc) {
+      const exported = new Set(getNotionExportedIds(doc));
+      return getDocumentReflections(doc).filter((entry) => !exported.has(entry.id));
+    }
 
-      const byId = new Map(documents.map((doc) => [doc.id, doc]));
-      const lastId = localStorage.getItem(NOTION_LAST_DOC_KEY);
-      const suggested = byId.get(lastId);
-      const defaultIndex =
-        suggested && documents.findIndex((doc) => doc.id === suggested.id) >= 0
-          ? documents.findIndex((doc) => doc.id === suggested.id) + 1
-          : 1;
-
-      const options = documents
-        .map((doc, idx) => {
-          const count = getDocumentReflectionCount(doc);
-          return (
-            (idx + 1) +
-            ') ' +
-            (doc.name || defaultDocumentName()) +
-            ' (' +
-            count +
-            ' reflection' +
-            (count === 1 ? '' : 's') +
-            ')'
-          );
-        })
-        .join('\n');
-
-      const picked = window.prompt(
-        'Export which document to Notion?\n\n' + options + '\n\nEnter a number:',
-        String(defaultIndex)
+    function markNotionSync(documentId, patch) {
+      parent.postMessage(
+        { pluginMessage: { type: 'update-document', documentId, patch } },
+        '*'
       );
-      if (picked === null) return null;
-      const index = Number(picked);
-      if (!Number.isInteger(index) || index < 1 || index > documents.length) {
-        window.alert('Please enter a valid document number.');
-        return null;
-      }
-      return documents[index - 1];
     }
 
-    async function exportDocumentToNotion(doc) {
-      const reflectionsToExport = getDocumentReflections(doc);
-      if (!reflectionsToExport.length) {
+    async function exportDocumentToNotion(doc, triggerButton) {
+      const reflectionsToExport = getPendingNotionReflections(doc);
+      if (!getDocumentReflections(doc).length) {
         window.alert('This document has no stored reflection entries to export.');
         return;
       }
-
-      if (!notionSessionToken) {
-        const token = window.prompt('Paste your Notion integration token (starts with ntn_):', '');
-        if (token === null) return;
-        if (!token.trim()) {
-          window.alert('Notion token is required.');
-          return;
+      if (!reflectionsToExport.length) {
+        const notionPageUrl = doc.notionPageUrl || '';
+        window.alert(
+          'No new reflections to export for this document.' +
+            (notionPageUrl ? '\n\nOpen page: ' + notionPageUrl : '')
+        );
+        if (notionPageUrl) {
+          window.open(notionPageUrl, '_blank', 'noopener,noreferrer');
         }
-        notionSessionToken = token.trim();
-      }
-
-      const savedParent = localStorage.getItem(NOTION_PARENT_ID_KEY) || '';
-      const parentInput = window.prompt(
-        'Paste a Notion parent page URL or page ID:',
-        savedParent
-      );
-      if (parentInput === null) return;
-      const parentPageId = normalizeNotionPageId(parentInput);
-      if (!parentPageId) {
-        window.alert('Could not parse a valid Notion page ID. Paste a page URL or 32-char ID.');
         return;
       }
-      localStorage.setItem(NOTION_PARENT_ID_KEY, parentPageId);
-      localStorage.setItem(NOTION_LAST_DOC_KEY, doc.id);
 
+      if (triggerButton) {
+        triggerButton.disabled = true;
+        triggerButton.textContent = 'Exporting...';
+      }
       view5Notion.disabled = true;
-      view5Notion.textContent = 'Exporting...';
+      view5Notion.textContent = 'Export all to Notion...';
+
       try {
         const response = await fetch(NOTION_EXPORT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            notionToken: notionSessionToken,
-            parentPageId,
+            notionPageId: doc.notionPageId || null,
             document: {
               id: doc.id,
               name: doc.name || defaultDocumentName(),
@@ -2685,28 +2710,42 @@
 
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) {
-          if (response.status === 401) {
-            notionSessionToken = '';
-          }
           throw new Error(payload.error || 'Notion export failed.');
         }
 
+        const exportedIds = [
+          ...new Set(getNotionExportedIds(doc).concat(reflectionsToExport.map((entry) => entry.id)))
+        ];
+        const notionPageId = payload.pageId || doc.notionPageId || null;
+        const notionPageUrl = payload.pageUrl || doc.notionPageUrl || '';
+        markNotionSync(doc.id, {
+          notionPageId,
+          notionPageUrl,
+          notionLastExportedAt: new Date().toISOString(),
+          notionExportedReflectionIds: exportedIds
+        });
+
         const exportedCount =
           typeof payload.exportedCount === 'number' ? payload.exportedCount : reflectionsToExport.length;
-        const pageUrl = payload.pageUrl || '';
+        if (notionPageUrl) {
+          window.open(notionPageUrl, '_blank', 'noopener,noreferrer');
+        }
         window.alert(
           'Exported ' +
             exportedCount +
-            ' reflection' +
+            ' new reflection' +
             (exportedCount === 1 ? '' : 's') +
-            ' to Notion.' +
-            (pageUrl ? '\n\nPage: ' + pageUrl : '')
+            ' to Notion.'
         );
       } catch (error) {
         window.alert(error && error.message ? error.message : 'Notion export failed.');
       } finally {
+        if (triggerButton) {
+          triggerButton.disabled = false;
+          triggerButton.textContent = 'Export to Notion';
+        }
         view5Notion.disabled = false;
-        view5Notion.textContent = 'Connect Notion';
+        view5Notion.textContent = 'Export all to Notion';
       }
     }
 
@@ -2715,9 +2754,18 @@
         window.alert('Create a document first from the Reflections tab.');
         return;
       }
-      const doc = chooseDocumentForNotionExport();
-      if (!doc) return;
-      await exportDocumentToNotion(doc);
+      let exportedDocs = 0;
+      for (const doc of documents) {
+        const before = getPendingNotionReflections(doc).length;
+        if (!before) continue;
+        // Sequential to avoid hitting Notion rate limits.
+        // eslint-disable-next-line no-await-in-loop
+        await exportDocumentToNotion(doc);
+        exportedDocs += 1;
+      }
+      if (!exportedDocs) {
+        window.alert('All documents are already up to date in Notion.');
+      }
     }
 
     function buildDocumentObject(reflectionEntries, name) {
@@ -3082,10 +3130,12 @@
           '</button>' +
         '</div>' +
         '<p class="log-entry__response text-muted"></p>' +
+        '<p class="log-entry__sync text-muted"></p>' +
         '<div class="log-entry__doc-actions">' +
           '<div class="log-entry__doc-actions-secondary">' +
             '<button type="button" class="btn btn-secondary log-entry__doc-preview-btn">Preview</button>' +
             '<button type="button" class="btn btn-secondary log-entry__doc-restore">Break apart</button>' +
+            '<button type="button" class="btn btn-secondary log-entry__doc-open-notion">Open in Notion</button>' +
           '</div>' +
           '<button type="button" class="btn btn-primary log-entry__doc-export-notion" aria-label="Export to Notion">Export to Notion</button>' +
         '</div>';
@@ -3093,6 +3143,15 @@
       article.querySelector('.log-entry__doc-title').textContent = docName;
       article.querySelector('.log-entry__response').textContent =
         count + ' reflection' + (count === 1 ? '' : 's');
+      const syncedCount = getNotionExportedIds(doc).length;
+      const syncEl = article.querySelector('.log-entry__sync');
+      if (doc.notionLastExportedAt) {
+        const syncedAt = new Date(doc.notionLastExportedAt).toLocaleString();
+        syncEl.textContent =
+          'Synced ' + syncedCount + ' reflection' + (syncedCount === 1 ? '' : 's') + ' • ' + syncedAt;
+      } else {
+        syncEl.textContent = 'Not yet exported to Notion';
+      }
 
       article.querySelector('.log-entry__delete').addEventListener('click', (e) => {
         e.stopPropagation();
@@ -3115,13 +3174,17 @@
       }
       article
         .querySelector('.log-entry__doc-export-notion')
-        .addEventListener('click', () => {
-          try {
-            window.open('https://www.notion.so/login', '_blank', 'noopener,noreferrer');
-          } catch (_) {
-            window.location.href = 'https://www.notion.so/login';
-          }
+        .addEventListener('click', (event) => {
+          exportDocumentToNotion(doc, event.currentTarget);
         });
+      const openNotionBtn = article.querySelector('.log-entry__doc-open-notion');
+      if (doc.notionPageUrl) {
+        openNotionBtn.addEventListener('click', () => {
+          window.open(doc.notionPageUrl, '_blank', 'noopener,noreferrer');
+        });
+      } else {
+        openNotionBtn.disabled = true;
+      }
 
       return article;
     }
@@ -3214,6 +3277,17 @@
     function openView5Log() {
       exitCompileMode();
       setView5Tab('reflections');
+      hideView(view4);
+      showView(view5);
+    }
+
+    function openView5FromAnywhere() {
+      exitCompileMode();
+      setView5Tab('reflections');
+      hideView(view1);
+      hideView(view2);
+      hideView(view2b);
+      hideView(view3);
       hideView(view4);
       showView(view5);
     }
@@ -3828,6 +3902,7 @@
     deleteModalConfirm.addEventListener('click', confirmDelete);
     deleteModalBackdrop.addEventListener('click', closeDeleteModal);
     view5Notion.addEventListener('click', handleNotionExportClick);
+    quickLogFab.addEventListener('click', openView5FromAnywhere);
 
   </script>
 </body>

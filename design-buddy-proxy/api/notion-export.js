@@ -203,6 +203,21 @@ async function createNotionPage(notionToken, parentPageId, title, intro) {
   return { id: data.id, url: data.url };
 }
 
+async function fetchNotionPageUrl(notionToken, pageId) {
+  const res = await fetch(`${NOTION_API}/pages/${pageId}`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${notionToken}`,
+      'Notion-Version': NOTION_VERSION,
+    },
+  });
+  if (!res.ok) {
+    throw new Error('Failed to load existing Notion page.');
+  }
+  const data = await res.json();
+  return data?.url || '';
+}
+
 async function buildReflectionBlocks(notionToken, reflection, index) {
   const anchorValue = sanitizeText(reflection?.anchor?.value, 'Untitled anchor');
   const prompt = sanitizeText(reflection?.prompt);
@@ -254,22 +269,34 @@ export default async function handler(req, res) {
 
   try {
     const body = parseBody(req);
-    const notionToken = sanitizeText(body.notionToken);
-    const parentPageId = sanitizeText(body.parentPageId);
+    const notionToken = sanitizeText(process.env.NOTION_INTEGRATION_TOKEN || body.notionToken);
+    const parentPageId = sanitizeText(process.env.NOTION_PARENT_PAGE_ID || body.parentPageId);
     const document = body.document || {};
+    const notionPageId = sanitizeText(body.notionPageId);
     const documentName = sanitizeText(document.name, 'Design Buddy Document');
     const reflections = Array.isArray(document.reflections)
       ? document.reflections.slice(0, MAX_REFLECTIONS)
       : [];
 
-    if (!hasValue(notionToken) || !hasValue(parentPageId) || !reflections.length) {
+    if (!hasValue(notionToken) || !hasValue(parentPageId)) {
+      return res.status(500).json({
+        error: 'Server missing Notion configuration. Set NOTION_INTEGRATION_TOKEN and NOTION_PARENT_PAGE_ID.',
+      });
+    }
+    if (!reflections.length) {
       return res.status(400).json({ error: 'Missing fields' });
     }
 
     const now = new Date().toISOString().slice(0, 10);
-    const title = `${documentName} - ${now}`;
-    const intro = `Exported from Design Buddy on ${now}.`;
-    const page = await createNotionPage(notionToken, parentPageId, title, intro);
+    let page;
+    if (notionPageId) {
+      const pageUrl = await fetchNotionPageUrl(notionToken, notionPageId);
+      page = { id: notionPageId, url: pageUrl };
+    } else {
+      const title = `${documentName} - ${now}`;
+      const intro = `Exported from Design Buddy on ${now}.`;
+      page = await createNotionPage(notionToken, parentPageId, title, intro);
+    }
 
     const blocks = [];
     for (let i = 0; i < reflections.length; i += 1) {
@@ -286,6 +313,7 @@ export default async function handler(req, res) {
       pageId: page.id,
       pageUrl: page.url,
       exportedCount: reflections.length,
+      exportedReflectionIds: reflections.map((entry) => entry?.id).filter(Boolean),
     });
   } catch (error) {
     console.error('Notion export failed:', error);
