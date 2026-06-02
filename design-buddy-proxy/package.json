@@ -1,0 +1,6 @@
+{
+  "name": "design-buddy-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vercel proxy for Design Buddy Anthropic follow-up questions"
+}

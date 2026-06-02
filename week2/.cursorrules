@@ -13,6 +13,12 @@ The listing is derived from `git ls-files` (tracked + untracked, honoring `.giti
 ```
 .githooks/pre-commit
 .gitignore
+design-buddy-proxy/.env.example
+design-buddy-proxy/.gitignore
+design-buddy-proxy/api/notion-export.js
+design-buddy-proxy/api/reflect.js
+design-buddy-proxy/package.json
+design-buddy-proxy/payload.json
 mp1/MP1.ipynb
 mp1/MP1.md
 mp1/README.md

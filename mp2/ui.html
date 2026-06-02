@@ -2109,8 +2109,8 @@
         <button type="button" id="view-5-compile-confirm" class="btn btn-primary btn-full view-5__compile-confirm view-5__compile-confirm--hidden">Compile selected</button>
       </div>
       <div id="view-5-footer-documents" class="view-5__footer-panel view-5__footer-panel--hidden">
-        <span class="view-5__notion-wrap" title="Coming soon">
-          <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" disabled aria-label="Connect Notion — coming soon">Connect Notion</button>
+        <span class="view-5__notion-wrap" title="Export a document to Notion">
+          <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" aria-label="Connect Notion">Connect Notion</button>
         </span>
       </div>
     </div>
@@ -2210,6 +2210,7 @@
     const view5Footer = document.getElementById('view-5-footer');
     const view5CompileToggle = document.getElementById('view-5-compile-toggle');
     const view5CompileConfirm = document.getElementById('view-5-compile-confirm');
+    const view5Notion = document.getElementById('view-5-notion');
     const compileModal = document.getElementById('compile-modal');
     const compileModalBackdrop = document.getElementById('compile-modal-backdrop');
     const compileModalList = document.getElementById('compile-modal-list');
@@ -2286,6 +2287,9 @@
       interfacing: 'Interfacing',
       thread: 'thread'
     };
+    const NOTION_EXPORT_URL = 'https://design-buddy-proxy.vercel.app/api/notion-export';
+    const NOTION_PARENT_ID_KEY = 'design-buddy-notion-parent-page-id';
+    const NOTION_LAST_DOC_KEY = 'design-buddy-notion-last-document-id';
 
     let reflections = [];
     let documents = [];
@@ -2311,6 +2315,7 @@
     let view3ReturnMode = false;
     let pendingHelperText = null;
     let lastReflectionExcerpt = null;
+    let notionSessionToken = '';
 
     const appState = {
       anchor: null,
@@ -2557,6 +2562,162 @@
       const refs = getDocumentReflections(doc);
       if (refs.length) return refs.length;
       return doc.reflectionCount || 0;
+    }
+
+    function normalizeNotionPageId(input) {
+      if (!input) return null;
+      const raw = String(input).trim();
+      if (!raw) return null;
+
+      const uuidMatch = raw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i);
+      if (uuidMatch) {
+        return uuidMatch[0].toLowerCase();
+      }
+
+      const compactMatch = raw.match(/[0-9a-f]{32}/i);
+      if (compactMatch) {
+        const value = compactMatch[0].toLowerCase();
+        return (
+          value.slice(0, 8) +
+          '-' +
+          value.slice(8, 12) +
+          '-' +
+          value.slice(12, 16) +
+          '-' +
+          value.slice(16, 20) +
+          '-' +
+          value.slice(20)
+        );
+      }
+
+      return null;
+    }
+
+    function chooseDocumentForNotionExport() {
+      if (!documents.length) return null;
+      if (documents.length === 1) return documents[0];
+
+      const byId = new Map(documents.map((doc) => [doc.id, doc]));
+      const lastId = localStorage.getItem(NOTION_LAST_DOC_KEY);
+      const suggested = byId.get(lastId);
+      const defaultIndex =
+        suggested && documents.findIndex((doc) => doc.id === suggested.id) >= 0
+          ? documents.findIndex((doc) => doc.id === suggested.id) + 1
+          : 1;
+
+      const options = documents
+        .map((doc, idx) => {
+          const count = getDocumentReflectionCount(doc);
+          return (
+            (idx + 1) +
+            ') ' +
+            (doc.name || defaultDocumentName()) +
+            ' (' +
+            count +
+            ' reflection' +
+            (count === 1 ? '' : 's') +
+            ')'
+          );
+        })
+        .join('\n');
+
+      const picked = window.prompt(
+        'Export which document to Notion?\n\n' + options + '\n\nEnter a number:',
+        String(defaultIndex)
+      );
+      if (picked === null) return null;
+      const index = Number(picked);
+      if (!Number.isInteger(index) || index < 1 || index > documents.length) {
+        window.alert('Please enter a valid document number.');
+        return null;
+      }
+      return documents[index - 1];
+    }
+
+    async function exportDocumentToNotion(doc) {
+      const reflectionsToExport = getDocumentReflections(doc);
+      if (!reflectionsToExport.length) {
+        window.alert('This document has no stored reflection entries to export.');
+        return;
+      }
+
+      if (!notionSessionToken) {
+        const token = window.prompt('Paste your Notion integration token (starts with ntn_):', '');
+        if (token === null) return;
+        if (!token.trim()) {
+          window.alert('Notion token is required.');
+          return;
+        }
+        notionSessionToken = token.trim();
+      }
+
+      const savedParent = localStorage.getItem(NOTION_PARENT_ID_KEY) || '';
+      const parentInput = window.prompt(
+        'Paste a Notion parent page URL or page ID:',
+        savedParent
+      );
+      if (parentInput === null) return;
+      const parentPageId = normalizeNotionPageId(parentInput);
+      if (!parentPageId) {
+        window.alert('Could not parse a valid Notion page ID. Paste a page URL or 32-char ID.');
+        return;
+      }
+      localStorage.setItem(NOTION_PARENT_ID_KEY, parentPageId);
+      localStorage.setItem(NOTION_LAST_DOC_KEY, doc.id);
+
+      view5Notion.disabled = true;
+      view5Notion.textContent = 'Exporting...';
+      try {
+        const response = await fetch(NOTION_EXPORT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            notionToken: notionSessionToken,
+            parentPageId,
+            document: {
+              id: doc.id,
+              name: doc.name || defaultDocumentName(),
+              date: doc.date,
+              reflections: reflectionsToExport
+            }
+          })
+        });
+
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          if (response.status === 401) {
+            notionSessionToken = '';
+          }
+          throw new Error(payload.error || 'Notion export failed.');
+        }
+
+        const exportedCount =
+          typeof payload.exportedCount === 'number' ? payload.exportedCount : reflectionsToExport.length;
+        const pageUrl = payload.pageUrl || '';
+        window.alert(
+          'Exported ' +
+            exportedCount +
+            ' reflection' +
+            (exportedCount === 1 ? '' : 's') +
+            ' to Notion.' +
+            (pageUrl ? '\n\nPage: ' + pageUrl : '')
+        );
+      } catch (error) {
+        window.alert(error && error.message ? error.message : 'Notion export failed.');
+      } finally {
+        view5Notion.disabled = false;
+        view5Notion.textContent = 'Connect Notion';
+      }
+    }
+
+    async function handleNotionExportClick() {
+      if (!documents.length) {
+        window.alert('Create a document first from the Reflections tab.');
+        return;
+      }
+      const doc = chooseDocumentForNotionExport();
+      if (!doc) return;
+      await exportDocumentToNotion(doc);
     }
 
     function buildDocumentObject(reflectionEntries, name) {
@@ -2926,9 +3087,7 @@
             '<button type="button" class="btn btn-secondary log-entry__doc-preview-btn">Preview</button>' +
             '<button type="button" class="btn btn-secondary log-entry__doc-restore">Break apart</button>' +
           '</div>' +
-          '<button type="button" class="log-entry__icon-btn log-entry__icon-btn--primary log-entry__doc-download" aria-label="Download markdown">' +
-            M3_ICON.download +
-          '</button>' +
+          '<button type="button" class="btn btn-primary log-entry__doc-export-notion" aria-label="Export to Notion">Export to Notion</button>' +
         '</div>';
 
       article.querySelector('.log-entry__doc-title').textContent = docName;
@@ -2955,17 +3114,13 @@
         });
       }
       article
-        .querySelector('.log-entry__doc-download')
+        .querySelector('.log-entry__doc-export-notion')
         .addEventListener('click', () => {
-          const slug = (doc.name || 'document')
-            .replace(/[^\w\s-]/g, '')
-            .trim()
-            .replace(/\s+/g, '-')
-            .toLowerCase();
-          downloadMarkdown(
-            doc.markdown || compileReflectionsMarkdown(getDocumentReflections(doc)),
-            'design-buddy-' + (slug || 'document') + '-' + doc.date + '.md'
-          );
+          try {
+            window.open('https://www.notion.so/login', '_blank', 'noopener,noreferrer');
+          } catch (_) {
+            window.location.href = 'https://www.notion.so/login';
+          }
         });
 
       return article;
@@ -3672,6 +3827,7 @@
     deleteModalCancel.addEventListener('click', closeDeleteModal);
     deleteModalConfirm.addEventListener('click', confirmDelete);
     deleteModalBackdrop.addEventListener('click', closeDeleteModal);
+    view5Notion.addEventListener('click', handleNotionExportClick);
 
   </script>
 </body>
