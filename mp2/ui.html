@@ -1178,6 +1178,71 @@
       color: var(--color-text);
     }
 
+    .view-4__privacy-note {
+      margin: var(--space-sm) 0 0;
+      font-size: var(--text-xs);
+      line-height: var(--leading-normal);
+    }
+
+    .privacy-note {
+      margin: 0;
+      font-size: var(--text-xs);
+      line-height: var(--leading-normal);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .view-1__privacy-note {
+      margin: 0;
+    }
+
+    .view-1__bottom {
+      position: relative;
+      flex-shrink: 0;
+      width: 100%;
+      min-height: 40px;
+    }
+
+    .view-1__bottom .nav-arrow {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+    }
+
+    .view-1__bottom .privacy-note {
+      position: absolute;
+      left: 0;
+      right: 48px;
+      top: 50%;
+      transform: translateY(-50%);
+      text-align: center;
+    }
+
+    .view-3__privacy-note {
+      margin: 0;
+    }
+
+    .view-3__bottom {
+      position: relative;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+      padding-right: 44px;
+    }
+
+    .view-3__bottom .view-3__tabs {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      top: auto;
+      transform: none;
+    }
+
+    .view-3__bottom .view-3__save {
+      margin-top: 0;
+    }
+
     .view-4__actions {
       display: flex;
       flex-direction: column;
@@ -1290,6 +1355,11 @@
       font-size: var(--text-xs);
       line-height: var(--leading-normal);
       text-align: center;
+    }
+
+    .view-5__privacy-note {
+      margin: var(--space-xs) 0 0;
+      padding: 0 40px;
     }
 
     .view-5__compile-confirm--hidden {
@@ -1522,9 +1592,6 @@
     }
 
     .view-3__tabs {
-      position: absolute;
-      right: var(--space-lg);
-      bottom: 52px;
       display: flex;
       flex-direction: column;
       gap: var(--space-sm);
@@ -2000,11 +2067,14 @@
       </div>
     </div>
 
-    <button type="button" id="view-1-next" class="nav-arrow" disabled aria-label="Continue">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M5 12h14M13 6l6 6-6 6"/>
-      </svg>
-    </button>
+    <div class="view-1__bottom">
+      <p class="privacy-note view-1__privacy-note text-muted">Reflections stay in Figma local storage on this device.</p>
+      <button type="button" id="view-1-next" class="nav-arrow" disabled aria-label="Continue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </button>
+    </div>
   </div>
 
   <div id="view-2" class="view view-2 view--hidden">
@@ -2134,26 +2204,30 @@
       </div>
       <textarea id="view-3-response" class="textarea-reflection view-3__textarea" placeholder="Write your reflection…"></textarea>
     </div>
-    <div class="view-3__tabs">
-      <button type="button" id="view-3-tab-frame" class="view-tab" aria-label="View anchor frame">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <rect x="4" y="4" width="16" height="16" rx="1"/>
-          <path d="M4 9h16"/>
-        </svg>
-      </button>
-      <button type="button" id="view-3-tab-card" class="view-tab" aria-label="View drawn card">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-          <rect x="5" y="3" width="14" height="18" rx="2"/>
-          <path d="M9 8h6M9 12h4"/>
-        </svg>
-      </button>
+    <div class="view-3__bottom">
+      <p class="privacy-note view-3__privacy-note text-muted">Reflections stay in Figma local storage on this device.</p>
+      <button type="button" id="view-3-save" class="btn btn-primary btn-full view-3__save" disabled>Save reflection</button>
+      <div class="view-3__tabs">
+        <button type="button" id="view-3-tab-frame" class="view-tab" aria-label="View anchor frame">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <rect x="4" y="4" width="16" height="16" rx="1"/>
+            <path d="M4 9h16"/>
+          </svg>
+        </button>
+        <button type="button" id="view-3-tab-card" class="view-tab" aria-label="View drawn card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+            <rect x="5" y="3" width="14" height="18" rx="2"/>
+            <path d="M9 8h6M9 12h4"/>
+          </svg>
+        </button>
+      </div>
     </div>
-    <button type="button" id="view-3-save" class="btn btn-primary btn-full view-3__save" disabled>Save reflection</button>
   </div>
 
   <div id="view-4" class="view view-4 view--hidden">
     <div class="view-4__body">
       <p class="view-4__message">Saved. See you tomorrow.</p>
+      <p class="view-4__privacy-note text-muted">Stored locally in Figma on this device.</p>
       <div class="view-4__actions">
         <button type="button" id="view-4-log" class="btn btn-secondary btn-full">See all reflections</button>
       </div>
@@ -2196,6 +2270,7 @@
           <p id="view-5-notion-status" class="view-5__notion-status text-muted" aria-live="polite"></p>
         </span>
       </div>
+      <p class="privacy-note view-5__privacy-note text-muted">Reflections stay in Figma local storage on this device. Notion export goes to your workspace only.</p>
     </div>
   </div>
 
