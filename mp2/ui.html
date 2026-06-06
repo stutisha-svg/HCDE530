@@ -1279,6 +1279,19 @@
       padding-top: var(--space-sm);
     }
 
+    .view-5__notion-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-xs);
+    }
+
+    .view-5__notion-status {
+      margin: 0;
+      font-size: var(--text-xs);
+      line-height: var(--leading-normal);
+      text-align: center;
+    }
+
     .view-5__compile-confirm--hidden {
       display: none;
     }
@@ -1686,6 +1699,14 @@
     .modal__field:focus {
       outline: none;
       border-color: var(--color-border-strong);
+    }
+
+    .modal__field--compact {
+      margin-bottom: 0;
+      resize: vertical;
+      min-height: 4.5rem;
+      font-size: var(--text-xs);
+      line-height: var(--leading-normal);
     }
 
     .btn--action-dark {
@@ -2166,6 +2187,7 @@
       <div id="view-5-footer-documents" class="view-5__footer-panel view-5__footer-panel--hidden">
         <span class="view-5__notion-wrap" title="Export a document to Notion">
           <button type="button" id="view-5-notion" class="btn btn-secondary btn-full" aria-label="Export all to Notion">Export all to Notion</button>
+          <p id="view-5-notion-status" class="view-5__notion-status text-muted" aria-live="polite"></p>
         </span>
       </div>
     </div>
@@ -2238,7 +2260,11 @@
       <p id="notion-modal-message" class="modal__message text-muted"></p>
       <div id="notion-step-connect" class="notion-modal__step">
         <button type="button" id="notion-connect-btn" class="btn btn-primary btn-full">Connect with Notion</button>
-        <p class="text-muted" style="margin:0;font-size:var(--text-xs);">Sign in with Notion in your browser, then choose where exports should live.</p>
+        <p class="text-muted" style="margin:0;font-size:var(--text-xs);">Sign in with Notion in your browser. When connected, copy the code from that tab and paste it below.</p>
+        <div id="notion-finish-wrap" class="notion-modal__step view--hidden">
+          <label for="notion-oauth-paste" class="text-muted" style="margin:0;font-size:var(--text-xs);">Connection code from browser</label>
+          <textarea id="notion-oauth-paste" class="modal__field modal__field--compact" rows="3" placeholder="Paste connection code here"></textarea>
+        </div>
       </div>
       <div id="notion-step-picker" class="notion-modal__step view--hidden">
         <div id="notion-page-list" class="modal__scroll modal__list"></div>
@@ -2295,6 +2321,7 @@
     const view5CompileToggle = document.getElementById('view-5-compile-toggle');
     const view5CompileConfirm = document.getElementById('view-5-compile-confirm');
     const view5Notion = document.getElementById('view-5-notion');
+    const view5NotionStatus = document.getElementById('view-5-notion-status');
     const compileModal = document.getElementById('compile-modal');
     const compileModalBackdrop = document.getElementById('compile-modal-backdrop');
     const compileModalList = document.getElementById('compile-modal-list');
@@ -2330,6 +2357,8 @@
     const notionStepPicker = document.getElementById('notion-step-picker');
     const notionStepReady = document.getElementById('notion-step-ready');
     const notionConnectBtn = document.getElementById('notion-connect-btn');
+    const notionFinishWrap = document.getElementById('notion-finish-wrap');
+    const notionOAuthPaste = document.getElementById('notion-oauth-paste');
     const notionPageList = document.getElementById('notion-page-list');
     const notionSaveDestinationBtn = document.getElementById('notion-save-destination');
     const notionConnectedSummary = document.getElementById('notion-connected-summary');
@@ -2391,6 +2420,8 @@
     const NOTION_EXPORT_URL = PROXY_BASE + '/api/notion-export';
     const NOTION_PAGES_URL = PROXY_BASE + '/api/notion-pages';
     const NOTION_OAUTH_CONFIG_URL = PROXY_BASE + '/api/notion-oauth/config';
+    const NOTION_OAUTH_TOKEN_URL = PROXY_BASE + '/api/notion-oauth/token';
+    const NOTION_OAUTH_REDEEM_URL = PROXY_BASE + '/api/notion-oauth/redeem';
     const NOTION_OAUTH_AUTHORIZE_URL = 'https://api.notion.com/v1/oauth/authorize';
 
     let reflections = [];
@@ -2421,6 +2452,9 @@
     let pendingNotionTriggerButton = null;
     let notionSettings = null;
     let notionOAuthState = null;
+    let notionOAuthPollTimer = null;
+    let notionOAuthHandled = false;
+    let notionOAuthAwaitingFinish = false;
     let notionPickerPages = [];
     let notionSelectedPageId = null;
 
@@ -2737,6 +2771,23 @@
       } else {
         view5Notion.textContent = 'Connect Notion';
       }
+      updateView5NotionStatus();
+    }
+
+    function updateView5NotionStatus() {
+      if (!view5NotionStatus) return;
+      if (isNotionExportReady()) {
+        const workspace = (notionSettings && notionSettings.workspaceName) || 'Notion';
+        const page = (notionSettings && notionSettings.parentPageTitle) || 'Selected page';
+        view5NotionStatus.textContent = 'Connected to ' + workspace + ' · ' + page;
+        return;
+      }
+      if (notionSettings && notionSettings.accessToken) {
+        const workspace = notionSettings.workspaceName || 'Notion';
+        view5NotionStatus.textContent = 'Signed in to ' + workspace + ' — choose a destination page';
+        return;
+      }
+      view5NotionStatus.textContent = '';
     }
 
     function getNotionModalStep() {
@@ -2752,8 +2803,12 @@
 
       if (step === 'connect') {
         notionModalTitle.textContent = 'Connect Notion';
-        notionModalMessage.textContent =
-          'Exports go to your own Notion workspace. Sign in in your browser to authorize.';
+        notionModalMessage.textContent = notionOAuthAwaitingFinish
+          ? 'Copy the connection code from the browser tab that says Connected to Notion, paste it below, then click Finish Notion sign-in.'
+          : 'Exports go to your own Notion workspace. Sign in in your browser to authorize.';
+        if (notionFinishWrap) {
+          notionFinishWrap.classList.toggle('view--hidden', !notionOAuthAwaitingFinish);
+        }
       } else if (step === 'picker') {
         notionModalTitle.textContent = 'Choose export destination';
         const workspace = notionSettings && notionSettings.workspaceName
@@ -2782,9 +2837,28 @@
       }
     }
 
+    function setNotionAwaitingFinishUI(awaiting) {
+      notionOAuthAwaitingFinish = !!awaiting;
+      if (notionFinishWrap) {
+        notionFinishWrap.classList.toggle('view--hidden', !awaiting);
+      }
+      if (!awaiting && notionOAuthPaste) {
+        notionOAuthPaste.value = '';
+      }
+      if (notionConnectBtn) {
+        notionConnectBtn.textContent = awaiting
+          ? 'Finish Notion sign-in'
+          : 'Connect with Notion';
+      }
+    }
+
     function closeNotionModal(clearPending) {
       notionModal.classList.add('modal--hidden');
       notionModal.setAttribute('aria-hidden', 'true');
+      stopNotionOAuthPoll();
+      setNotionAwaitingFinishUI(false);
+      notionOAuthState = null;
+      notionOAuthHandled = false;
       if (clearPending !== false) {
         pendingNotionExportMode = null;
         pendingNotionDocumentId = null;
@@ -2799,9 +2873,133 @@
       return String(Date.now()) + '-' + Math.random().toString(36).slice(2, 12);
     }
 
+    function stopNotionOAuthPoll() {
+      if (notionOAuthPollTimer) {
+        clearInterval(notionOAuthPollTimer);
+        notionOAuthPollTimer = null;
+      }
+    }
+
+    function applyNotionOAuthSuccess(data) {
+      if (!data || !data.ok || !data.accessToken) return;
+      if (notionOAuthHandled) return;
+      if (notionOAuthState && data.state && data.state !== notionOAuthState) return;
+
+      notionOAuthHandled = true;
+      stopNotionOAuthPoll();
+      notionOAuthState = null;
+      setNotionAwaitingFinishUI(false);
+
+      notionSettings = {
+        accessToken: data.accessToken,
+        workspaceName: data.workspaceName || '',
+        workspaceId: data.workspaceId || '',
+        parentPageId: (notionSettings && notionSettings.parentPageId) || '',
+        parentPageTitle: (notionSettings && notionSettings.parentPageTitle) || '',
+        connectedAt: new Date().toISOString()
+      };
+      saveNotionSettingsToPlugin(notionSettings);
+      updateView5NotionButtonLabel();
+      notionConnectBtn.textContent = 'Connect with Notion';
+      openNotionModal('picker');
+    }
+
+    async function redeemNotionTicket(ticket) {
+      if (!ticket || notionOAuthHandled) return;
+      if (!notionOAuthState) {
+        window.alert('Notion sign-in expired in the plugin. Click Connect with Notion and try again.');
+        return;
+      }
+
+      const response = await fetch(NOTION_OAUTH_REDEEM_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket: ticket, state: notionOAuthState })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.ok || !payload.accessToken) {
+        throw new Error(payload.error || 'Could not complete Notion sign-in.');
+      }
+      applyNotionOAuthSuccess(payload);
+    }
+
+    async function finishNotionOAuthFromBrowser() {
+      notionConnectBtn.disabled = true;
+      notionConnectBtn.textContent = 'Finishing…';
+      try {
+        let ticket = notionOAuthPaste && notionOAuthPaste.value
+          ? notionOAuthPaste.value.trim()
+          : '';
+        if (!ticket && navigator.clipboard && navigator.clipboard.readText) {
+          try {
+            ticket = (await navigator.clipboard.readText()).trim();
+          } catch (error) {
+            // Figma blocks clipboard read in many environments.
+          }
+        }
+        if (!ticket) {
+          window.alert(
+            'Paste the connection code from the browser tab that says Connected to Notion, then click Finish Notion sign-in again.'
+          );
+          if (notionOAuthPaste) {
+            notionOAuthPaste.focus();
+          }
+          return;
+        }
+        await redeemNotionTicket(ticket);
+      } catch (error) {
+        window.alert(
+          error && error.message ? error.message : 'Could not complete Notion sign-in.'
+        );
+      } finally {
+        notionConnectBtn.disabled = false;
+        if (notionOAuthAwaitingFinish) {
+          notionConnectBtn.textContent = 'Finish Notion sign-in';
+        } else {
+          notionConnectBtn.textContent = 'Connect with Notion';
+        }
+      }
+    }
+
+    function handleNotionConnectClick() {
+      if (notionOAuthAwaitingFinish) {
+        finishNotionOAuthFromBrowser();
+        return;
+      }
+      startNotionOAuth();
+    }
+
+    function startNotionOAuthPoll() {
+      stopNotionOAuthPoll();
+      if (!notionOAuthState) return;
+
+      const state = notionOAuthState;
+      let attempts = 0;
+      notionOAuthPollTimer = setInterval(async () => {
+        attempts += 1;
+        if (attempts > 120) {
+          stopNotionOAuthPoll();
+          return;
+        }
+        try {
+          const response = await fetch(
+            NOTION_OAUTH_TOKEN_URL + '?state=' + encodeURIComponent(state)
+          );
+          if (response.status === 404) return;
+          const payload = await response.json().catch(() => ({}));
+          if (response.ok && payload.ok && payload.accessToken) {
+            applyNotionOAuthSuccess(payload);
+          }
+        } catch (error) {
+          // Keep polling until timeout.
+        }
+      }, 1000);
+    }
+
     async function startNotionOAuth() {
       notionConnectBtn.disabled = true;
       notionConnectBtn.textContent = 'Opening Notion…';
+      notionOAuthHandled = false;
       try {
         const response = await fetch(NOTION_OAUTH_CONFIG_URL);
         const config = await response.json().catch(() => ({}));
@@ -2817,14 +3015,20 @@
           state: notionOAuthState
         });
         const authUrl = NOTION_OAUTH_AUTHORIZE_URL + '?' + params.toString();
-        window.open(authUrl, '_blank', 'noopener,noreferrer');
+        window.open(authUrl, '_blank');
+        setNotionAwaitingFinishUI(true);
+        notionModalMessage.textContent =
+          'After Notion says you are connected, copy the connection code from that browser tab and paste it here.';
+        startNotionOAuthPoll();
       } catch (error) {
         window.alert(
           error && error.message ? error.message : 'Could not start Notion sign-in.'
         );
       } finally {
         notionConnectBtn.disabled = false;
-        notionConnectBtn.textContent = 'Connect with Notion';
+        if (!notionOAuthAwaitingFinish) {
+          notionConnectBtn.textContent = 'Connect with Notion';
+        }
       }
     }
 
@@ -2832,9 +3036,12 @@
       const data = event.data;
       if (!data || data.type !== 'design-buddy-notion-oauth') return;
       if (!notionOAuthState || data.state !== notionOAuthState) return;
-      notionOAuthState = null;
 
       if (!data.ok) {
+        stopNotionOAuthPoll();
+        notionOAuthState = null;
+        notionOAuthHandled = false;
+        notionOAuthAwaitingFinish = false;
         window.alert(
           data.error
             ? 'Notion connection failed: ' + data.error
@@ -2843,16 +3050,16 @@
         return;
       }
 
-      notionSettings = {
-        accessToken: data.accessToken,
-        workspaceName: data.workspaceName || '',
-        workspaceId: data.workspaceId || '',
-        parentPageId: '',
-        parentPageTitle: '',
-        connectedAt: new Date().toISOString()
-      };
-      saveNotionSettingsToPlugin(notionSettings);
-      openNotionModal('picker');
+      if (data.ticket) {
+        redeemNotionTicket(data.ticket).catch((error) => {
+          window.alert(
+            error && error.message ? error.message : 'Could not complete Notion sign-in.'
+          );
+        });
+        return;
+      }
+
+      applyNotionOAuthSuccess(data);
     }
 
     async function fetchNotionPages() {
@@ -2943,7 +3150,13 @@
         parentPageTitle: selected ? selected.title : 'Selected page'
       });
       updateView5NotionButtonLabel();
-      runPendingNotionExportIfAny();
+      renderNotionModalStep('ready');
+      notionConnectBtn.textContent = 'Connect with Notion';
+      if (pendingNotionExportMode) {
+        runPendingNotionExportIfAny();
+        return;
+      }
+      window.setTimeout(() => closeNotionModal(), 900);
     }
 
     function ensureNotionReadyForExport(options) {
@@ -4073,6 +4286,9 @@
       if (msg.type === 'notion-settings-loaded') {
         notionSettings = msg.data || null;
         updateView5NotionButtonLabel();
+        if (!notionModal.classList.contains('modal--hidden')) {
+          renderNotionModalStep(getNotionModalStep());
+        }
         return;
       }
 
@@ -4261,7 +4477,7 @@
     view5Notion.addEventListener('click', () => handleNotionExportClick(false));
     notionModalCancel.addEventListener('click', closeNotionModal);
     notionModalBackdrop.addEventListener('click', closeNotionModal);
-    notionConnectBtn.addEventListener('click', startNotionOAuth);
+    notionConnectBtn.addEventListener('click', handleNotionConnectClick);
     notionSaveDestinationBtn.addEventListener('click', saveNotionDestination);
     notionChangeDestinationBtn.addEventListener('click', () => openNotionModal('picker'));
     notionDisconnectBtn.addEventListener('click', () => {

@@ -1,6 +1,6 @@
 # Design Buddy — Agent Handover
 
-**Date:** 2026-06-01  
+**Date:** 2026-06-02  
 **Reason:** Context window full. Do not continue building in this session.
 
 ---
@@ -15,88 +15,56 @@
 | 2. Design system in `ui.html` | Working | CSS variables, Figtree + Amatic SC + Material Symbols Outlined (CDN), `.btn`, `.buddy-card`, modals |
 | 3. `prompts.json` | Working | 20 Inspiration / 12 Connections / 12 Interfacing + 3 thread strings |
 
-### View 1 — Anchor
+### Views and core flow
 
-- Loading animation (~1.5s)
-- Copy: *"What stayed with you today?"* + frame/component/token subtext
-- `selectionchange` in `code.js` → PNG preview or fallback + name; editable name; remove selection
-- `anchorCommitted`; nav arrow → View 2
-- **Start new reflection** from View 5 pre-selects exclusive deck and skips View 2 after anchor (`initView2(true)` + `goToView2b()`)
+- View 1 Anchor: selectionchange preview, editable anchor name, committed anchor gate, View 2 transition.
+- View 2 / 2b Draw: 2x2 deck cards, thread lock/unlock, prompt draw, max-2 redraw, surprise lock behavior, preview path to View 3.
+- View 3 Reflect: anchor, deck indicator, prompt/context, response textarea, save path.
+- View 4 Saved: continue reflecting and log entry points.
+- View 5 Log Hub: Reflections/Documents tabs, compile selected to docs, rename/delete/restore, preview modal, start-new card.
 
-### View 2 / View 2b — Draw
+### Notion integration (new)
 
-- 2×2 deck grid **120×170px**; tap deck or Surprise me → auto View 2b
-- Thread locked until `reflectionCount >= 3`
-- Buddy card **216×306px**; Context flip; Redraw max 2; Surprise me locks Redraw/Surprise/Back
-- `.view-nav` back + continue; View 3 preview from card tab
+- Added standalone backend at sibling folder `design-buddy-proxy`.
+- New route `api/notion-export.js` deployed on Vercel and active.
+- Uses server env vars:
+  - `NOTION_INTEGRATION_TOKEN`
+  - `NOTION_PARENT_PAGE_ID`
+- Exports include frame PNGs using Notion File Upload API.
+- Incremental sync behavior added:
+  - Per-document metadata tracked in stored docs (`notionPageId`, `notionPageUrl`, `notionLastExportedAt`, `notionExportedReflectionIds`).
+  - Subsequent exports append only new reflections.
+- Export success opens Notion page URL in browser.
 
-### View 3 — Reflect
+### View 5 / navigation polish (new)
 
-- Anchor, deck indicator, prompt, Context box, textarea, Save
-- Frame/card tabs; **"Earlier you noted:"** from newest reflection
-- Saves `anchorImage` (frame PNG) when available for document preview later
+- Footer button renamed to **Export all to Notion**.
+- Document cards show Notion sync status marker (not exported vs synced count + timestamp).
+- Removed document-level **Open in Notion** button per user request.
+- Added floating quick-log FAB (Material Symbols document icon) with count badge.
+- FAB moved to top-right and reduced size (~20%).
+- Back behavior from View 5 now checks state:
+  - If frame/prompt missing, back routes to View 1.
+  - Otherwise regular flow back to View 4.
 
-### View 4 — Saved
-
-- *"Saved. See you tomorrow."*
-- **See all reflections** → View 5
-- **Go back to reflecting more** → View 3 with **same reflection text preserved** (does not clear textarea)
-- No Close text button; no separate export screen (export lives in View 5)
-
-### View 5 — Log (expanded hub; replaces brief View 5 + View 6)
-
-**Reflections tab**
-
-- Black **Start new reflection** card (least-used deck)
-- Reflection cards: delete (confirm modal), expandable prompt
-- **Compile document** mode: select cards → **Compile selected** → modal (existing documents list + **Add to new document**)
-- Footer: **Download all as .md** (all loose reflections, brief markdown format) — was View 6
-
-**Documents tab**
-
-- Document cards: title + **stylus** rename (Material Symbols), preview modal (anchor, deck, prompt, context, reflection, frame image when saved), **Break apart** (restore to Reflections tab), per-doc **Download .md**, delete (confirm modal)
-- Footer: **Connect Notion** disabled, "Coming soon"
-
-**Navigation**
-
-- Round back button (`.view-nav`) → View 4
-- Only View 5 list area scrolls
-
-### Storage — `figma.clientStorage`
+### Storage and handlers
 
 | Key | Purpose |
 |-----|---------|
 | `reflections` | Array of reflection entries (newest first) |
-| `documents` | Array of compiled docs: `{ id, name, date, createdAt, updatedAt, reflections[], markdown }` |
+| `documents` | Compiled docs and sync metadata |
 
-**`code.js` message handlers**
-
-- `get-prompts`, `get-reflections` → `reflections-loaded` with `{ data, documents }`
-- `save-reflection`, `delete-reflection`
-- `compile-reflections` (mode `new` or `append`)
-- `restore-document`, `update-document`, `delete-document`
-- `close`
-- `selectionchange` / PNG export
-
-### Prompts
-
-- Embedded as `PROMPTS_DATA` in `code.js` via `node scripts/embed-prompts-in-code.js`
-- **Thread:** `{past_excerpt}` replaced at draw time via `getThreadPromptText()`
-
-### Icons
-
-- Material Symbols Outlined font (`delete`, `download`, `stylus` for rename — **not** `edit`)
-- `M3_ICON` map in `ui.html`
+`code.js` handlers include `update-document` patch support (`msg.patch`) for metadata updates.
 
 ---
 
 ## What is in progress and its current state
 
 | Item | State |
-|------|--------|
-| **Git / commits** | BUILDLOG updated through 2026-06-01; **confirm `git status`** — substantial session work may be uncommitted |
-| **Figma end-to-end test** | User has tested pieces; full regression after reload recommended |
-| **View 6** | **Removed** — merged into View 5 (see below) |
+|------|-------|
+| Notion export end-to-end UX | Working with correct Notion integration setup and shared parent page |
+| Build log and commit hygiene | Multiple uncommitted changes expected in `ui.html`, `code.js`, and `design-buddy-proxy` |
+| AI API step | Deferred; Step 13 files intentionally left in place |
 
 ---
 
@@ -106,41 +74,30 @@ Per `cursorrules` §14 build order (remaining):
 
 | Step | Item |
 |------|------|
-| 13 | **AI API call** — follow-up question on View 4 after save; needs `code.js` + env key; user approval for API wiring |
-| 14 | **Notion integration** (stretch) |
-| — | `README.md` |
-| — | End-to-end test pass documented |
-
-Build order steps 9–12 are **functionally complete** in View 5 (markdown export, compile, storage, thread excerpt). No separate View 6 screen exists.
+| 13 | **AI API call** — follow-up question on View 4 after save |
+| 14 | Notion stretch enhancements beyond current export flow |
+| — | `README.md` updates |
+| — | Full documented end-to-end test pass |
 
 ---
 
 ## Decisions that deviate from the brief (and why)
 
 | Topic | Brief | Actual | Why |
-|-------|--------|--------|-----|
-| Panel size | 380×600 / 240×480 in places | **360×480** | User-approved scaffold |
-| View 1 | Button + textarea anchor | Selection-change + rename | User rework |
-| View 2 | Select on same screen | Tap → immediate View 2b | User request |
-| View 4 | Generate document → View 6; Close | See reflections; go back reflecting; export in View 5 | User UX iterations |
-| View 5 | Simple scrollable log | **Tabs:** Reflections + Documents; compile, modals, start-new card | User request |
-| View 6 | Dedicated export screen | **Merged into View 5** footers | User consolidation request |
-| Prompt count label | "18 prompts" | **44** deck prompts in JSON | Full brief deck |
-| Prompts in UI | fetch `prompts.json` | **`PROMPTS_DATA` in `code.js`** | Figma iframe cannot fetch sibling files reliably |
-| View 5 scroll | No scroll in views | **View 5 list scrolls** | Brief requires scrollable log |
-| Storage order | After View 6 | **Early** | Reflections must persist |
-| Compile flow | View 6 download all | **Per-doc compile** + download all on Reflections tab | User request |
-| Rename icon | edit | **`stylus`** Material Symbol | `edit` glyph is pencil-on-document; poor at 14px |
+|-------|-------|--------|-----|
+| View 5 docs action | `.md` document download action | Replaced with **Export to Notion** | User-directed priority shift |
+| Notion auth UX | Prompt-token from UI (earlier iteration) | Server env-based integration token + parent page | User wanted plugin to handle auth setup internally |
+| View 5 footer doc button | Connect Notion | Export all to Notion | User request |
+| Quick access | No global jump | Floating top-right doc FAB to View 5 | User request |
 
 ---
 
 ## Unresolved questions and problems
 
-1. **AI API** — Figma plugin UI cannot call Anthropic directly with env vars the same way as Node; need pattern (e.g. backend proxy, or `figma.clientStorage` token field + user paste). Confirm approach with user before implementing.
-2. **Uncommitted work** — Run `git status`; suggest commits for View 5 hub, View 4 polish, `code.js` document handlers, `cursorrules` icons section.
-3. **`prompts-data.js`** — Legacy; UI unused. Delete only with user approval.
-4. **Legacy documents** — Docs compiled before `reflections[]` snapshot may lack break-apart data; preview falls back to markdown text only.
-5. **`cursorrules` §0** — Still says 240×480; §13 says 360×480 (use §13).
+1. Confirm final desired behavior for View 5 back routing in all entry combinations after latest state-based guard.
+2. Validate rate-limit behavior when “Export all to Notion” runs across many docs sequentially.
+3. `prompts-data.js` remains legacy/unused.
+4. AI Step 13 remains deferred and not wired.
 
 ---
 
@@ -148,99 +105,257 @@ Build order steps 9–12 are **functionally complete** in View 5 (markdown expor
 
 ### 0. What this project is
 
-A Figma plugin called Design Buddy. It opens as a small panel inside Figma and prompts HCD designers to reflect on their work at the end of each day. Reflections are saved locally via `figma.clientStorage` and exported as a `.md` file. The full specification lives in `design-buddy-cursor-brief.md`. Read that file before writing any code.
+A Figma plugin called Design Buddy. It opens as a small panel (240 × 480px) inside Figma  
+and prompts HCD designers to reflect on their work at the end of each day. Reflections are  
+saved locally via figma.clientStorage and exported as a .md file. The full specification  
+lives in design-buddy-cursor-brief.md. Read that file before writing any code.
 
 ### 1. Version control — human commits, agent stages
 
 After every sub-feature is built, tested, and reviewed:
-
 - Stop and tell the user exactly what was completed and what to commit.
-- Suggest a commit message: `feat: [what was built]` or `fix: [what was fixed]`
-- Do not proceed until the user confirms the commit.
-- Never commit on behalf of the user.
+- Suggest a commit message in this format: `feat: [what was built]` or `fix: [what was fixed]`
+- Do not proceed to the next task until the user confirms the commit has been made.
+- Never commit on behalf of the user. Version control is the user's responsibility.
+
+Sub-features that each warrant their own commit:
+- Design system and base CSS variables
+- Each individual View (View 1, View 2, View 3, View 4, View 5, View 6)
+- prompts.json populated with all 18 prompts
+- code.js scaffold (plugin opens and communicates with UI)
+- Local storage: save reflection
+- Local storage: retrieve reflections
+- Builds-on-previous prefix logic
+- Markdown export (.md download)
+- AI API call (added last)
+- Notion integration (stretch goal, added last)
 
 ### 2. Context handover — when memory fills
 
-If context window is approaching its limit: do not continue building; write `HANDOVER.md`; tell user to start new session with HANDOVER.md + `cursorrules` + brief.
+If your context window is approaching its limit:
+- Do not continue building.
+- Write a file called `HANDOVER.md` in the project root.
+- It must include:
+  - What has been built and is working (verified)
+  - What is in progress and its current state
+  - What has not been started yet
+  - Any decisions made that deviate from the brief, and why
+  - Any unresolved questions or problems
+  - All guardrails from this .cursorrules file, restated in full
+  - The next step the incoming agent should take, precisely described
+- Tell the user: "Context is filling. I've written HANDOVER.md. Please start a new session
+  and paste that file along with .cursorrules and the brief."
 
 ### 3. No assumptions
 
-Before any decision not in brief or rules: stop, ask, wait.
+Before making any decision not explicitly covered in the brief or this file:
+- Stop and ask.
+- State what you were about to do and why you were uncertain.
+- Wait for a response before proceeding.
+
+This applies to:
+- Project structure and file organisation
+- Database schema or storage structure
+- UI layout decisions not specified in the brief
+- Which library or dependency to use
+- Naming conventions
+- Scalability or architecture choices
+- Anything you are inferring rather than reading directly from the spec
+
+When in doubt, ask. A question takes 10 seconds. A wrong assumption can break the build.
 
 ### 4. Task breakdown and verification
 
-Break tasks into sub-steps; share for confirmation; report BUILT / TESTED / RESULT / READY FOR REVIEW / NEXT; wait for approval.
+For every task from the brief:
+- Break it into the smallest implementable sub-steps before writing code.
+- Share the breakdown with the user for confirmation before starting.
+- After completing each sub-step: test it, check for bugs and console errors, then report
+  back with what was built, what was tested, and what the result was.
+- Do not move to the next sub-step until the user has reviewed and approved the current one.
+
+Report format after each sub-step:
+```
+BUILT: [what was implemented]
+TESTED: [how it was verified]
+RESULT: [what works, what doesn't]
+READY FOR REVIEW: [what the user should check]
+NEXT: [what comes after approval]
+```
 
 ### 5. Blast radius — declare before changing
 
-Before multi-file or working-code changes: list files, impact, risk; ask confirmation.
+Before making any change that affects more than one file, or that modifies existing working
+code:
+- Stop.
+- Name every file that will be changed.
+- Describe exactly what will change in each file.
+- Describe how this affects the rest of the project — what could break, what depends on it.
+- Ask for explicit confirmation before proceeding.
+
+Format:
+```
+BLAST RADIUS
+Change: [what you're about to do]
+Files affected: [list every file]
+Impact: [what this changes in the broader project]
+Risk: [what could break]
+Waiting for confirmation before proceeding.
+```
 
 ### 6. Never touch working code unprompted
 
-No refactor/cleanup unless user asks.
+- Do not refactor, rename, reorganise, or clean up any code that is already working unless
+  the user explicitly asks for it.
+- Do not add comments, reformat whitespace, or change variable names in working files as a
+  side effect of another task.
+- If you notice something that could be improved, flag it as a suggestion after the current
+  task is complete. Do not act on it without instruction.
 
 ### 7. One file at a time
 
-Never edit more than one file per step unless blast radius approved.
+- Never edit more than one file in a single step.
+- If a task genuinely requires changes to multiple files, list all the files first, explain
+  why each needs to change, and get confirmation before touching any of them.
 
 ### 8. Bug fixing limit
 
-Stop after 2 failed fix attempts; explain and ask user.
+- If a bug is not resolved after 2 attempts, stop trying.
+- Explain the problem clearly: what the bug is, what you tried, why it didn't work, and
+  what you think the root cause is.
+- Ask the user how to proceed.
+- Do not keep making changes hoping something will work.
 
 ### 9. Dependencies
 
-Flag new packages; prefer native APIs; Google Fonts (Figtree, Amatic SC, Material Symbols) already approved.
+- Never install a new package or import an external library without flagging it first.
+- State: the package name, what it does, why it is needed, and whether a native alternative
+  exists.
+- Wait for confirmation before installing.
+- Prefer native browser APIs and the Figma Plugin API over third-party dependencies
+  wherever possible.
 
 ### 10. Build log
 
-Maintain `BUILDLOG.md`; append after every confirmed commit: `[date] | [commit message] | [what was tested] | [next step]`. Never delete.
+Maintain a file called `BUILDLOG.md` in the project root.
+After every confirmed commit, append one line in this format:
+```
+[date] | [commit message] | [what was tested] | [next step]
+```
+This file is never deleted. It is the running record of the build.
 
 ### 11. Protected files
 
-Never delete/overwrite/modify unless user instructs: `prompts.json`, `cursorrules`, `BUILDLOG.md`, `design-buddy-cursor-brief.md`. Ask before modifying.
+The following files must never be deleted, overwritten, or modified unless the user
+explicitly instructs it:
+
+- `prompts.json` — this is source content, not code. It was written before the build began.
+- `.cursorrules` — this file.
+- `BUILDLOG.md` — the build record.
+- `design-buddy-cursor-brief.md` — the project specification.
+
+If any task seems to require modifying these files, stop and ask first.
 
 ### 12. Icons — Material 3 (Material Symbols)
 
-All UI icons: Google Material Symbols Outlined via font ligatures in `ui.html` (`M3_ICON`). Rename uses **`stylus`**, not `edit`. 16px. `aria-label` on buttons.
+All UI icons must use **Google Material Symbols** (Material 3 style), not custom strokes
+or legacy Material Icons 24px paths.
+
+- **Source:** [Material Symbols](https://fonts.google.com/icons) — **Outlined** only.
+- **Delivery:** Load `Material Symbols Outlined` from Google Fonts in `ui.html` and use
+  ligatures via `<span class="material-symbols-outlined m3-icon">icon_name</span>`.
+  Define names once in `M3_ICON` in `ui.html` — do not hand-draw SVG paths.
+- **Rename / edit actions:** use the **`stylus`** icon (pencil only). Do **not** use
+  `edit` — that glyph is a pencil on a document and is wrong for rename buttons.
+- **Size:** 16px via `.material-symbols-outlined.m3-icon` (`opsz` 24).
+- **Accessibility:** `aria-hidden="true"` on the span; `aria-label` on the parent
+  `<button>`.
+
+When adding a new icon, add its ligature name to the Google Fonts `icon_names` list in
+`ui.html`, then add it to `M3_ICON`.
 
 ### 13. Plugin size and layout (fixed)
 
-Panel **360×480px**. No scroll inside views except View 5 list. No overlapping elements. Buddy cards: deck **120×170px**; prompt **216×306px**. View 2b: `.view-nav` for back/continue; max 2 redraws; Surprise me locks screen.
+The plugin panel is **360 × 480px** (set in `code.js`). Do not change panel dimensions.
+
+**No scroll** inside any view. **No overlapping elements.** If content does not fit, reduce
+spacing or card size — never add `overflow-y: auto` to views.
+
+### Buddy card dimensions (CSS variables in `ui.html`)
+
+| Variant | View | Size (W × H) | Ratio |
+|---------|------|--------------|-------|
+| Deck pick | View 2 | **120 × 170px** | 120∶170 |
+| Drawn prompt | View 2b | **216 × 306px** | same 120∶170 |
+
+Use the shared `.buddy-card` component for all cards. Deck indicator on View 2b sits **on**
+the prompt card (`.buddy-card__badge`), not above the panel.
+
+### Bottom navigation (View 2b and any view with back + continue)
+
+Back and continue must share one **horizontal row** at the bottom (`.view-nav`):
+back (left), continue (right). Do **not** absolutely position these over the card or action
+buttons. Action rows (Redraw, Surprise me) sit **above** `.view-nav`, never overlapping it.
+
+View 2: deck grid **248px** wide (2×120 + 8 gap); Surprise me button matches that width.
+
+### View 2b — Redraw and Surprise me (behavior)
+
+- **Redraw:** max **2** per visit to View 2b (one deck pick). After 2 redraws, hide Redraw only.
+- **Surprise me (View 2b):** when tapped, draw a new random prompt and then **lock** the screen:
+  hide **Redraw**, **Surprise me**, and **Back** so the user cannot return to deck pick and get
+  another redraw/surprise cycle. **Continue** stays visible to advance to Reflect.
+- Reset redraw count and control visibility only when entering View 2b from a new deck pick
+  (View 2).
 
 ### 14. Build order
 
-1. manifest + code.js scaffold ✓  
-2. design system ✓  
-3. prompts.json ✓  
-4. View 1 ✓  
-5. View 2 ✓  
-6. View 3 ✓  
-7. View 4 ✓  
-8. View 5 ✓ (includes former View 6 export/Notion stub)  
-9. View 6 — **merged into View 5** (no separate view)  
-10. Local storage: save ✓  
-11. Local storage: retrieve + builds-on-previous + thread excerpt ✓  
-12. Markdown export ✓ (View 5 + per-document)  
-13. AI API call  
-14. Notion (stretch)
+Follow this order. Do not skip ahead.
 
-### 15. When to stop and ask vs. proceed
+1. manifest.json + code.js scaffold — plugin opens in Figma, panel appears
+2. Design system — CSS variables, typography scale, base component styles
+3. prompts.json — all 18 prompts plus thread variants
+4. View 1 — Anchor
+5. View 2 — Draw
+6. View 3 — Reflect
+7. View 4 — Saved
+8. View 5 — Log
+9. View 6 — Document generation
+10. Local storage: save
+11. Local storage: retrieve + builds-on-previous prefix
+12. Markdown export
+13. AI API call
+14. Notion integration (stretch goal)
 
-Proceed: code fully in brief; bug fix in current file (≤2 attempts); append BUILDLOG.  
-Stop and ask: not in brief; multi-file; new dependency; architecture; build order deviation; protected files; bug after 2 attempts.
+UI milestone (June 3): Views 1–4 fully designed and interactive.
+Full build milestone (June 6): All features working end to end.
+
+### 15. When to stop and ask vs. when to proceed
+
+Proceed without asking:
+- Writing code that is fully specified in the brief
+- Fixing a bug within the file you are currently working on (first 2 attempts)
+- Appending to BUILDLOG.md
+
+Stop and ask:
+- Anything not covered in the brief
+- Any change affecting more than one file
+- Any new dependency
+- Any structural or architectural decision
+- Any deviation from the build order
+- Any modification to a protected file
+- Any bug that persists after 2 attempts
 
 ---
 
 ## Next step for the incoming agent (precise)
 
-1. **Read** `cursorrules`, `design-buddy-cursor-brief.md`, and this file.
-2. **Confirm** `git status` with user; suggest commit(s) for uncommitted session work if needed.
-3. **Begin Step 13 — AI API call** per brief:
-   - After save, generate one follow-up question; show on View 4 under *"One more thing to sit with:"*
-   - Model `claude-sonnet-4-20250514`, max 150 tokens, system prompt in brief
-   - **Stop and ask user** how API key should reach the plugin (Figma UI cannot use server env vars directly)
-   - Likely needs `code.js` to proxy or user-provided key in settings — declare blast radius before touching `code.js` + `ui.html`
-4. **Do not** recreate View 6 as a separate screen unless user asks.
+1. Read `cursorrules`, `design-buddy-cursor-brief.md`, and this file.
+2. Confirm current `git status` and have user commit current uncommitted work.
+3. Verify in Figma:
+   - View 5 back-routing state logic (frame/prompt missing => View 1; else View 4).
+   - Export all + incremental Notion sync behavior.
+   - Floating FAB position/size/icon in all views.
+4. Only after user confirms stability, continue with remaining brief items (`README`, AI step, extra Notion polish).
 
 ---
 
@@ -249,16 +364,24 @@ Stop and ask: not in brief; multi-file; new dependency; architecture; build orde
 ```
 mp2/
 ├── manifest.json
-├── code.js                    (PROMPTS_DATA + reflections/documents storage; regen via script)
-├── ui.html                    (Views 1–5; modals; no View 6)
-├── prompts.json               (protected source deck)
+├── code.js
+├── ui.html
+├── prompts.json
 ├── scripts/
 │   └── embed-prompts-in-code.js
 ├── prompts-data.js            (legacy; unused)
 ├── cursorrules
 ├── design-buddy-cursor-brief.md
 ├── BUILDLOG.md
-└── HANDOVER.md                (this file)
+└── HANDOVER.md
+
+design-buddy-proxy/            (sibling folder, NOT inside mp2)
+├── api/
+│   ├── reflect.js             (Step 13 route; untouched)
+│   └── notion-export.js       (active Notion export route)
+├── package.json
+├── .env.example
+└── .gitignore
 ```
 
 ---

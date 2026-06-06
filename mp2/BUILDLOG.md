@@ -15,3 +15,4 @@
 [2026-06-01] | refactor: merge View 6 into View 5 | Export all .md on Reflections tab; Notion on Documents tab; View 4 simplified | Step 13: AI API call
 [2026-06-01] | feat: View 5 log hub — tabs, compile, documents, modals | Reflections/Documents tabs; compile to new/existing doc; delete/restore/rename/preview; start-new card; M3 icons; delete confirm modal | refactor: merge View 6 into View 5
 [2026-06-01] | feat: View 4 polish + thread excerpt + anchorImage on save | Go back reflecting preserves text; {past_excerpt} in Thread deck; frame PNG stored on save | Confirm git status; Step 13: AI API call
+[2026-06-02] | feat: Notion export flow + View 5/FAB routing polish | Syntax checks passed (`ui.html`, `code.js`, `notion-export.js`), Vercel deploys succeeded, endpoint validation and runtime logs verified during Notion auth/debug | User commit current state; then verify end-to-end Figma flow and continue remaining brief items

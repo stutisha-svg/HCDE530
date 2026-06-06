@@ -4,7 +4,7 @@ export const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
-export const NOTION_VERSION = '2022-06-28';
+export const NOTION_VERSION = '2025-09-03';
 export const NOTION_API = 'https://api.notion.com/v1';
 
 export function setCors(res) {

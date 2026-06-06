@@ -18,8 +18,12 @@ design-buddy-proxy/.gitignore
 design-buddy-proxy/NOTION_SETUP.md
 design-buddy-proxy/api/_notion-shared.js
 design-buddy-proxy/api/notion-export.js
+design-buddy-proxy/api/notion-oauth/_pending.js
+design-buddy-proxy/api/notion-oauth/_ticket.js
 design-buddy-proxy/api/notion-oauth/callback.js
 design-buddy-proxy/api/notion-oauth/config.js
+design-buddy-proxy/api/notion-oauth/redeem.js
+design-buddy-proxy/api/notion-oauth/token.js
 design-buddy-proxy/api/notion-pages.js
 design-buddy-proxy/api/reflect.js
 design-buddy-proxy/package.json

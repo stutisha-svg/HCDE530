@@ -4,10 +4,53 @@ import {
   sanitizeText,
   hasValue,
   NOTION_API,
+  NOTION_VERSION,
   jsonHeaders,
 } from './_notion-shared.js';
 
 const MAX_REFLECTIONS = 30;
+const RICH_TEXT_LIMIT = 2000;
+const APPEND_CHUNK_SIZE = 90;
+
+function richTextParts(text) {
+  const content = text || '';
+  if (!content) {
+    return [{ type: 'text', text: { content: '' } }];
+  }
+  const parts = [];
+  for (let i = 0; i < content.length; i += RICH_TEXT_LIMIT) {
+    parts.push({
+      type: 'text',
+      text: { content: content.slice(i, i + RICH_TEXT_LIMIT) },
+    });
+  }
+  return parts;
+}
+
+async function notionErrorMessage(res, fallback) {
+  const data = await res.json().catch(() => ({}));
+  return data?.message || fallback;
+}
+
+async function waitForFileUpload(notionToken, fileUploadId) {
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const res = await fetch(`${NOTION_API}/file_uploads/${fileUploadId}`, {
+      method: 'GET',
+      headers: jsonHeaders(notionToken),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(await notionErrorMessage(res, 'Failed to verify Notion file upload.'));
+    }
+    if (data.status === 'uploaded') return fileUploadId;
+    if (data.status === 'failed' || data.status === 'expired') {
+      const importError = data?.file_import_result?.error?.message;
+      throw new Error(importError || 'Notion file upload failed.');
+    }
+    await new Promise((resolve) => setTimeout(resolve, 400));
+  }
+  throw new Error('Notion file upload timed out.');
+}
 
 function chunkBy(items, size) {
   const chunks = [];
@@ -46,14 +89,16 @@ async function sendFileUpload(notionToken, fileUploadId, binary, filename) {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${notionToken}`,
-      'Notion-Version': '2022-06-28',
+      'Notion-Version': NOTION_VERSION,
     },
     body: form,
   });
 
   if (!res.ok) {
-    throw new Error('Failed to upload image bytes to Notion.');
+    throw new Error(await notionErrorMessage(res, 'Failed to upload image bytes to Notion.'));
   }
+
+  return waitForFileUpload(notionToken, fileUploadId);
 }
 
 async function uploadAnchorImageToNotion(notionToken, base64Image, reflectionId) {
@@ -72,13 +117,12 @@ async function uploadAnchorImageToNotion(notionToken, base64Image, reflectionId)
     notionToken,
     `design-buddy-anchor-${reflectionId || Date.now()}.png`
   );
-  await sendFileUpload(
+  return sendFileUpload(
     notionToken,
     fileUploadId,
     binary,
     `design-buddy-anchor-${reflectionId || Date.now()}.png`
   );
-  return fileUploadId;
 }
 
 function paragraphBlock(text) {
@@ -86,17 +130,18 @@ function paragraphBlock(text) {
     object: 'block',
     type: 'paragraph',
     paragraph: {
-      rich_text: [{ type: 'text', text: { content: text || '' } }],
+      rich_text: richTextParts(text),
     },
   };
 }
 
 function headingBlock(text) {
+  const heading = (text || '').slice(0, RICH_TEXT_LIMIT);
   return {
     object: 'block',
     type: 'heading_3',
     heading_3: {
-      rich_text: [{ type: 'text', text: { content: text || '' } }],
+      rich_text: [{ type: 'text', text: { content: heading } }],
     },
   };
 }
@@ -106,13 +151,14 @@ function dividerBlock() {
 }
 
 function imageBlock(fileUploadId, caption) {
+  const safeCaption = (caption || '').slice(0, RICH_TEXT_LIMIT);
   return {
     object: 'block',
     type: 'image',
     image: {
       type: 'file_upload',
-      caption: caption
-        ? [{ type: 'text', text: { content: caption } }]
+      caption: safeCaption
+        ? [{ type: 'text', text: { content: safeCaption } }]
         : [],
       file_upload: { id: fileUploadId },
     },
@@ -120,7 +166,7 @@ function imageBlock(fileUploadId, caption) {
 }
 
 async function appendBlocks(notionToken, pageId, blocks) {
-  const chunks = chunkBy(blocks, 90);
+  const chunks = chunkBy(blocks, APPEND_CHUNK_SIZE);
   for (const children of chunks) {
     const res = await fetch(`${NOTION_API}/blocks/${pageId}/children`, {
       method: 'PATCH',
@@ -128,7 +174,7 @@ async function appendBlocks(notionToken, pageId, blocks) {
       body: JSON.stringify({ children }),
     });
     if (!res.ok) {
-      throw new Error('Failed to append blocks to Notion page.');
+      throw new Error(await notionErrorMessage(res, 'Failed to append blocks to Notion page.'));
     }
   }
 }
@@ -166,10 +212,7 @@ async function createNotionPage(notionToken, parentPageId, title, intro) {
 async function fetchNotionPageUrl(notionToken, pageId) {
   const res = await fetch(`${NOTION_API}/pages/${pageId}`, {
     method: 'GET',
-    headers: {
-      Authorization: `Bearer ${notionToken}`,
-      'Notion-Version': '2022-06-28',
-    },
+    headers: jsonHeaders(notionToken),
   });
   if (!res.ok) {
     throw new Error('Failed to load existing Notion page.');
