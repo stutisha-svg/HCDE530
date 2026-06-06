@@ -1,45 +1,13 @@
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type',
-};
+import {
+  setCors,
+  parseBody,
+  sanitizeText,
+  hasValue,
+  NOTION_API,
+  jsonHeaders,
+} from './_notion-shared.js';
 
-const NOTION_VERSION = '2022-06-28';
-const NOTION_API = 'https://api.notion.com/v1';
 const MAX_REFLECTIONS = 30;
-
-function setCors(res) {
-  Object.entries(CORS_HEADERS).forEach(([key, value]) => res.setHeader(key, value));
-}
-
-function hasValue(value) {
-  return value !== undefined && value !== null && String(value).trim() !== '';
-}
-
-function parseBody(req) {
-  if (!req || req.body === undefined || req.body === null) return {};
-  if (typeof req.body === 'object' && !Buffer.isBuffer(req.body)) return req.body;
-  if (Buffer.isBuffer(req.body)) {
-    try {
-      return JSON.parse(req.body.toString('utf8'));
-    } catch {
-      return {};
-    }
-  }
-  if (typeof req.body === 'string') {
-    try {
-      return JSON.parse(req.body);
-    } catch {
-      return {};
-    }
-  }
-  return {};
-}
-
-function sanitizeText(value, fallback = '') {
-  if (!hasValue(value)) return fallback;
-  return String(value).trim();
-}
 
 function chunkBy(items, size) {
   const chunks = [];
@@ -47,14 +15,6 @@ function chunkBy(items, size) {
     chunks.push(items.slice(i, i + size));
   }
   return chunks;
-}
-
-function jsonHeaders(token) {
-  return {
-    Authorization: `Bearer ${token}`,
-    'Notion-Version': NOTION_VERSION,
-    'Content-Type': 'application/json',
-  };
 }
 
 async function createFileUpload(notionToken, filename) {
@@ -86,7 +46,7 @@ async function sendFileUpload(notionToken, fileUploadId, binary, filename) {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${notionToken}`,
-      'Notion-Version': NOTION_VERSION,
+      'Notion-Version': '2022-06-28',
     },
     body: form,
   });
@@ -191,7 +151,7 @@ async function createNotionPage(notionToken, parentPageId, title, intro) {
   if (!res.ok) {
     const data = await res.json().catch(() => null);
     if (res.status === 401) {
-      throw new Error('Notion authorization failed. Check your integration token.');
+      throw new Error('Notion authorization failed. Reconnect Notion in Design Buddy.');
     }
     throw new Error(data?.message || 'Failed to create Notion page.');
   }
@@ -208,7 +168,7 @@ async function fetchNotionPageUrl(notionToken, pageId) {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${notionToken}`,
-      'Notion-Version': NOTION_VERSION,
+      'Notion-Version': '2022-06-28',
     },
   });
   if (!res.ok) {
@@ -269,8 +229,8 @@ export default async function handler(req, res) {
 
   try {
     const body = parseBody(req);
-    const notionToken = sanitizeText(process.env.NOTION_INTEGRATION_TOKEN || body.notionToken);
-    const parentPageId = sanitizeText(process.env.NOTION_PARENT_PAGE_ID || body.parentPageId);
+    const notionToken = sanitizeText(body.accessToken || body.notionToken);
+    const parentPageId = sanitizeText(body.parentPageId);
     const document = body.document || {};
     const notionPageId = sanitizeText(body.notionPageId);
     const documentName = sanitizeText(document.name, 'Design Buddy Document');
@@ -278,9 +238,14 @@ export default async function handler(req, res) {
       ? document.reflections.slice(0, MAX_REFLECTIONS)
       : [];
 
-    if (!hasValue(notionToken) || !hasValue(parentPageId)) {
-      return res.status(500).json({
-        error: 'Server missing Notion configuration. Set NOTION_INTEGRATION_TOKEN and NOTION_PARENT_PAGE_ID.',
+    if (!hasValue(notionToken)) {
+      return res.status(401).json({
+        error: 'Connect Notion in Design Buddy before exporting.',
+      });
+    }
+    if (!hasValue(parentPageId)) {
+      return res.status(400).json({
+        error: 'Choose a Notion destination page in Design Buddy before exporting.',
       });
     }
     if (!reflections.length) {
@@ -321,7 +286,9 @@ export default async function handler(req, res) {
       error && typeof error.message === 'string' && error.message
         ? error.message
         : 'Server error';
-    const isAuth = message.toLowerCase().includes('authorization');
+    const isAuth =
+      message.toLowerCase().includes('authorization') ||
+      message.toLowerCase().includes('reconnect');
     return res.status(isAuth ? 401 : 500).json({ error: message });
   }
 }

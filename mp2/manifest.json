@@ -1,8 +1,17 @@
 {
   "name": "Design Buddy",
-  "id": "design-buddy",
+  "id": "1643810914516499216",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
-  "editorType": ["figma"]
+  "editorType": ["figma"],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": [
+      "https://fonts.googleapis.com",
+      "https://fonts.gstatic.com",
+      "https://design-buddy-proxy.vercel.app"
+    ],
+    "reasoning": "Google Fonts for UI typography/icons; Vercel proxy for Notion OAuth, page search, and export to the user's own workspace."
+  }
 }
