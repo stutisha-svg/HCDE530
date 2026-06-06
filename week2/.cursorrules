@@ -51,6 +51,7 @@ mp2/loading.gif
 mp2/manifest.json
 mp2/prompts-data.js
 mp2/prompts.json
+mp2/reflection.md
 mp2/scripts/embed-deck-icons.py
 mp2/scripts/embed-prompts-in-code.js
 mp2/scripts/icon-b64.txt
