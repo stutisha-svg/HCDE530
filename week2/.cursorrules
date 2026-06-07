@@ -43,11 +43,11 @@ mp2/assets/decks/connections.png
 mp2/assets/decks/inspiration.png
 mp2/assets/decks/interfacing.png
 mp2/assets/decks/thread.png
+mp2/assets/icon.png
+mp2/assets/loading.gif
 mp2/code.js
 mp2/cursorrules
 mp2/design-buddy-cursor-brief.md
-mp2/icon.png
-mp2/loading.gif
 mp2/manifest.json
 mp2/prompts-data.js
 mp2/prompts.json

@@ -5,9 +5,9 @@ ui = root / "ui.html"
 b64_path = root / "scripts" / "loading-gif-b64.txt"
 
 if not b64_path.exists():
-    gif = root / "loading.gif"
+    gif = root / "assets" / "loading.gif"
     if not gif.exists():
-        raise SystemExit("loading.gif not found")
+        raise SystemExit("assets/loading.gif not found")
     import base64
 
     b64_path.write_text(base64.b64encode(gif.read_bytes()).decode("ascii"), encoding="utf-8")

@@ -1648,6 +1648,7 @@
 
     .modal__panel {
       position: relative;
+      z-index: 1;
       width: 100%;
       max-width: 280px;
       padding: var(--space-lg);
@@ -2718,6 +2719,21 @@
         : String(Date.now()) + '-r-' + Math.random().toString(36).slice(2, 8);
     }
 
+    function splitMarkdownHeader(header) {
+      const separators = [' \u2014 ', ' \u2013 ', ' - ', '\u2014', '\u2013'];
+      for (let s = 0; s < separators.length; s++) {
+        const sep = separators[s];
+        const idx = header.indexOf(sep);
+        if (idx >= 0) {
+          return [
+            header.slice(0, idx).trim(),
+            header.slice(idx + sep.length).trim()
+          ];
+        }
+      }
+      return ['', header.trim()];
+    }
+
     function parseDocumentMarkdown(markdown) {
       if (!markdown || typeof markdown !== 'string') return [];
       const entries = [];
@@ -2740,9 +2756,9 @@
 
         if (line.startsWith('### ')) {
           const header = line.slice(4);
-          const emDash = header.indexOf(' — ');
-          const dateStr = emDash >= 0 ? header.slice(0, emDash).trim() : '';
-          const anchor = emDash >= 0 ? header.slice(emDash + 3).trim() : header.trim();
+          const parts = splitMarkdownHeader(header);
+          const dateStr = parts[0];
+          const anchor = parts[1] || 'Untitled anchor';
           i++;
 
           let prompt = '';
@@ -2877,7 +2893,8 @@
     }
 
     function canRestoreDocument(doc) {
-      return getRestorableReflections(doc).length > 0;
+      if (getRestorableReflections(doc).length > 0) return true;
+      return getDocumentReflectionCount(doc) > 0;
     }
 
     function getDocumentReflectionCount(doc) {
@@ -3618,20 +3635,22 @@
     }
 
     function restoreDocument(documentId) {
-      const doc = documents.find((d) => d.id === documentId);
-      if (!doc) return;
-      const reflectionsToRestore = getRestorableReflections(doc);
-      if (!reflectionsToRestore.length) return;
       parent.postMessage(
-        {
-          pluginMessage: {
-            type: 'restore-document',
-            documentId,
-            reflections: reflectionsToRestore
-          }
-        },
+        { pluginMessage: { type: 'restore-document', documentId } },
         '*'
       );
+    }
+
+    function applyLocalRestore(documentId) {
+      const doc = documents.find((d) => d.id === documentId);
+      if (!doc) return false;
+      const toRestore = getRestorableReflections(doc);
+      if (!toRestore.length) return false;
+      reflections.unshift(...toRestore.map(cloneReflection));
+      documents = documents.filter((d) => d.id !== documentId);
+      updateReflectionDerivedState();
+      updateQuickLogFabCount();
+      return true;
     }
 
     function updateDocumentName(documentId, name) {
@@ -3938,8 +3957,10 @@
       const restoreBtn = article.querySelector('.log-entry__doc-restore');
       if (!canRestoreDocument(doc)) {
         restoreBtn.disabled = true;
+        restoreBtn.title = 'No reflection data to restore';
       } else {
         restoreBtn.addEventListener('click', (e) => {
+          e.preventDefault();
           e.stopPropagation();
           openRestoreModal(doc.id);
         });
@@ -4511,6 +4532,20 @@
         return;
       }
 
+      if (msg.type === 'restore-failed') {
+        requestReflectionsFromPlugin();
+        if (msg.reason === 'storage') {
+          window.alert(
+            'Could not break apart this document. Storage may be full — try deleting old entries first.'
+          );
+        } else if (msg.reason === 'empty') {
+          window.alert(
+            'This document has no reflection data to restore. Try recompiling from your reflections.'
+          );
+        }
+        return;
+      }
+
       if (msg.type === 'notion-settings-loaded') {
         notionSettings = msg.data || null;
         updateView5NotionButtonLabel();
@@ -4695,6 +4730,10 @@
       if (!pendingRestoreDocumentId) return;
       const id = pendingRestoreDocumentId;
       closeRestoreModal();
+      if (!applyLocalRestore(id)) {
+        window.alert('This document has no reflection data to restore.');
+        return;
+      }
       restoreDocument(id);
       setView5Tab('reflections');
     });

@@ -36,6 +36,105 @@ async function saveDocuments(documents) {
   await figma.clientStorage.setAsync(DOCUMENTS_KEY, documents);
 }
 
+function newReflectionId() {
+  return (
+    Date.now().toString(36) +
+    "-r-" +
+    Math.random().toString(36).slice(2, 10)
+  );
+}
+
+function splitMarkdownHeader(header) {
+  const separators = [" \u2014 ", " \u2013 ", " - ", "\u2014", "\u2013"];
+  for (let i = 0; i < separators.length; i++) {
+    const sep = separators[i];
+    const idx = header.indexOf(sep);
+    if (idx >= 0) {
+      return [
+        header.slice(0, idx).trim(),
+        header.slice(idx + sep.length).trim()
+      ];
+    }
+  }
+  return ["", header.trim()];
+}
+
+function parseDocumentMarkdown(markdown) {
+  if (!markdown || typeof markdown !== "string") return [];
+  const entries = [];
+  let currentDeck = "inspiration";
+  const lines = markdown.split("\n");
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    if (line.startsWith("## ")) {
+      const deckName = line.slice(3).trim();
+      if (deckName === "Thread") currentDeck = "thread";
+      else if (deckName === "Connections") currentDeck = "connections";
+      else if (deckName === "Interfacing") currentDeck = "interfacing";
+      else currentDeck = "inspiration";
+      i++;
+      continue;
+    }
+
+    if (line.startsWith("### ")) {
+      const header = line.slice(4);
+      const parts = splitMarkdownHeader(header);
+      const dateStr = parts[0];
+      const anchor = parts[1] || "Untitled anchor";
+      i++;
+
+      let prompt = "";
+      if (i < lines.length && lines[i].startsWith("**Prompt:**")) {
+        prompt = lines[i].replace(/^\*\*Prompt:\*\*\s*/, "").trim();
+        i++;
+      }
+
+      const responseLines = [];
+      while (
+        i < lines.length &&
+        lines[i] !== "---" &&
+        !lines[i].startsWith("### ") &&
+        !lines[i].startsWith("## ")
+      ) {
+        responseLines.push(lines[i]);
+        i++;
+      }
+
+      const parsedDate = new Date(dateStr + "T12:00:00");
+      const date = isNaN(parsedDate.getTime())
+        ? new Date().toISOString().slice(0, 10)
+        : parsedDate.toISOString().slice(0, 10);
+
+      entries.push({
+        id: newReflectionId(),
+        date,
+        deck: currentDeck,
+        anchor: { type: "text", value: anchor },
+        prompt,
+        response: responseLines.join("\n").trim()
+      });
+      continue;
+    }
+
+    i++;
+  }
+
+  return entries;
+}
+
+function getRestorableReflectionsFromDoc(doc) {
+  if (Array.isArray(doc.reflections) && doc.reflections.length) {
+    return doc.reflections.slice();
+  }
+  if (doc.markdown) {
+    return parseDocumentMarkdown(doc.markdown);
+  }
+  return [];
+}
+
 async function postHistoryToUI() {
   const reflections = await loadReflections();
   const documents = await loadDocuments();
@@ -99,7 +198,12 @@ figma.ui.onmessage = async (msg) => {
         doc.reflectionCount = doc.reflections.length;
       }
     } else if (msg.document) {
-      docs.unshift(msg.document);
+      const doc = Object.assign({}, msg.document);
+      if (!Array.isArray(doc.reflections) || !doc.reflections.length) {
+        doc.reflections = reflectionsToMove.slice();
+      }
+      doc.reflectionCount = doc.reflections.length;
+      docs.unshift(doc);
     }
 
     await saveDocuments(docs);
@@ -109,23 +213,37 @@ figma.ui.onmessage = async (msg) => {
   if (msg.type === "restore-document") {
     const documentId = msg.documentId;
     if (!documentId) return;
-    const docs = await loadDocuments();
-    const index = docs.findIndex((d) => d.id === documentId);
-    if (index === -1) return;
-    const doc = docs[index];
-    const restored =
-      Array.isArray(msg.reflections) && msg.reflections.length
-        ? msg.reflections
-        : Array.isArray(doc.reflections)
-          ? doc.reflections
-          : [];
-    if (!restored.length) return;
-    const existing = await loadReflections();
-    existing.unshift(...restored);
-    docs.splice(index, 1);
-    await saveReflections(existing);
-    await saveDocuments(docs);
-    await postHistoryToUI();
+
+    try {
+      const docs = await loadDocuments();
+      const index = docs.findIndex((d) => d.id === documentId);
+      if (index === -1) {
+        figma.ui.postMessage({ type: "restore-failed", reason: "not-found" });
+        return;
+      }
+
+      const doc = docs[index];
+      const restored = getRestorableReflectionsFromDoc(doc);
+      if (!restored.length) {
+        figma.ui.postMessage({ type: "restore-failed", reason: "empty" });
+        return;
+      }
+
+      const existing = await loadReflections();
+      existing.unshift(...restored);
+      docs.splice(index, 1);
+
+      // Remove the document first so reflection data is not duplicated in storage.
+      await saveDocuments(docs);
+      await saveReflections(existing);
+      await postHistoryToUI();
+    } catch (error) {
+      figma.ui.postMessage({
+        type: "restore-failed",
+        reason: "storage",
+        message: error && error.message ? error.message : "Save failed"
+      });
+    }
   }
 
   if (msg.type === "update-document") {

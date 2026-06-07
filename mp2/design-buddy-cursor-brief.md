@@ -8,6 +8,12 @@ This is a portfolio piece. The UI must be polished, considered, and feel like a 
 
 ---
 
+## Live link to project
+
+https://canva.link/vq91v3syaortr3p
+
+---
+
 ## File structure
 
 ```
