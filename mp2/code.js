@@ -113,7 +113,13 @@ figma.ui.onmessage = async (msg) => {
     const index = docs.findIndex((d) => d.id === documentId);
     if (index === -1) return;
     const doc = docs[index];
-    const restored = Array.isArray(doc.reflections) ? doc.reflections : [];
+    const restored =
+      Array.isArray(msg.reflections) && msg.reflections.length
+        ? msg.reflections
+        : Array.isArray(doc.reflections)
+          ? doc.reflections
+          : [];
+    if (!restored.length) return;
     const existing = await loadReflections();
     existing.unshift(...restored);
     docs.splice(index, 1);

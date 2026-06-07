@@ -2712,6 +2712,78 @@
       return md.trim() + '\n';
     }
 
+    function newReflectionId() {
+      return typeof crypto !== 'undefined' && crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + '-r-' + Math.random().toString(36).slice(2, 8);
+    }
+
+    function parseDocumentMarkdown(markdown) {
+      if (!markdown || typeof markdown !== 'string') return [];
+      const entries = [];
+      let currentDeck = 'inspiration';
+      const lines = markdown.split('\n');
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i];
+
+        if (line.startsWith('## ')) {
+          const deckName = line.slice(3).trim();
+          if (deckName === 'Thread') currentDeck = 'thread';
+          else if (deckName === 'Connections') currentDeck = 'connections';
+          else if (deckName === 'Interfacing') currentDeck = 'interfacing';
+          else currentDeck = 'inspiration';
+          i++;
+          continue;
+        }
+
+        if (line.startsWith('### ')) {
+          const header = line.slice(4);
+          const emDash = header.indexOf(' — ');
+          const dateStr = emDash >= 0 ? header.slice(0, emDash).trim() : '';
+          const anchor = emDash >= 0 ? header.slice(emDash + 3).trim() : header.trim();
+          i++;
+
+          let prompt = '';
+          if (i < lines.length && lines[i].startsWith('**Prompt:**')) {
+            prompt = lines[i].replace(/^\*\*Prompt:\*\*\s*/, '').trim();
+            i++;
+          }
+
+          const responseLines = [];
+          while (
+            i < lines.length &&
+            lines[i] !== '---' &&
+            !lines[i].startsWith('### ') &&
+            !lines[i].startsWith('## ')
+          ) {
+            responseLines.push(lines[i]);
+            i++;
+          }
+
+          const parsedDate = new Date(dateStr + 'T12:00:00');
+          const date = isNaN(parsedDate.getTime())
+            ? new Date().toISOString().slice(0, 10)
+            : parsedDate.toISOString().slice(0, 10);
+
+          entries.push({
+            id: newReflectionId(),
+            date,
+            deck: currentDeck,
+            anchor: { type: 'text', value: anchor || 'Untitled anchor' },
+            prompt,
+            response: responseLines.join('\n').trim()
+          });
+          continue;
+        }
+
+        i++;
+      }
+
+      return entries;
+    }
+
     function downloadMarkdown(markdown, filename) {
       const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -2795,6 +2867,17 @@
         return doc.reflections;
       }
       return [];
+    }
+
+    function getRestorableReflections(doc) {
+      const stored = getDocumentReflections(doc);
+      if (stored.length) return stored.map(cloneReflection);
+      if (doc.markdown) return parseDocumentMarkdown(doc.markdown);
+      return [];
+    }
+
+    function canRestoreDocument(doc) {
+      return getRestorableReflections(doc).length > 0;
     }
 
     function getDocumentReflectionCount(doc) {
@@ -3535,8 +3618,18 @@
     }
 
     function restoreDocument(documentId) {
+      const doc = documents.find((d) => d.id === documentId);
+      if (!doc) return;
+      const reflectionsToRestore = getRestorableReflections(doc);
+      if (!reflectionsToRestore.length) return;
       parent.postMessage(
-        { pluginMessage: { type: 'restore-document', documentId } },
+        {
+          pluginMessage: {
+            type: 'restore-document',
+            documentId,
+            reflections: reflectionsToRestore
+          }
+        },
         '*'
       );
     }
@@ -3843,10 +3936,11 @@
         openPreviewModal(doc);
       });
       const restoreBtn = article.querySelector('.log-entry__doc-restore');
-      if (!getDocumentReflections(doc).length) {
+      if (!canRestoreDocument(doc)) {
         restoreBtn.disabled = true;
       } else {
-        restoreBtn.addEventListener('click', () => {
+        restoreBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
           openRestoreModal(doc.id);
         });
       }

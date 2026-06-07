@@ -1,61 +1,17 @@
-# Design Buddy — Privacy, Notion export, and review notes
+# Design Buddy — MP2 Reflection
 
-## Listing copy (Figma Community)
+## What did you build?
 
-**Short description**
+Design Buddy is a Figma plugin for human-centered designers who want to close the workday with structured reflection tied to real design artifacts. A designer selects a frame, component, or token in their file as an anchor, draws a prompt from one of three decks (Inspiration, Connections, or Interfacing), and writes a short response in a fixed 360×480 panel. Reflections accumulate in a local log, can be compiled into documents, and optionally exported to the designer’s own Notion workspace. The prompt deck is grounded in course readings—Calvino, Norman, Berger, and others—so each question pushes critique beyond “how did today go?” toward specific design theory. Thread deck prompts reference earlier reflections in the same file, supporting continuity across a project. The interface is intentionally card-based and typographic rather than form-heavy: deck pick, drawn prompt, reflect, save, log.
 
-Daily reflection prompts for HCD designers. Save reflections locally in Figma and optionally export compiled documents to your own Notion workspace.
+## What decisions did you make?
 
-**Privacy / data handling**
+I chose Figma as the platform because reflection should happen where design work already lives, not in a separate journaling app that loses visual context. Anchoring to a selection and storing a frame preview (`anchorImage` as base64 in `figma.clientStorage`) keeps each entry linked to concrete work. I scoped out a dedicated View 6 and merged export into View 5’s Reflections/Documents tabs so the log hub stays the single place for history and output. Notion export replaced `.md` download as the primary document action after marketplace feedback: a Vercel proxy handles OAuth and block creation so each user exports to their workspace, not mine. I deferred the AI follow-up API (Step 13) to keep the core loop shippable. Local-first storage was non-negotiable—privacy copy on Views 1, 3, and 5 states that reflections never leave the machine unless the user explicitly exports.
 
-Reflections stay in Figma local storage. Notion export uses your own workspace via OAuth; we do not store your Notion token or reflection content on our servers.
+## What would you do differently?
 
-**Notion export**
+I would redesign Notion OAuth for Figma desktop from the start instead of discovering late that the sandbox blocks reliable `postMessage` and clipboard handoff between the system browser and the plugin iframe. The current flow—poll, finish button, paste-as-backup—works but adds friction Figma reviewers notice. A durable server-side session store (e.g. KV) with a simpler “return to plugin” confirmation would be cleaner. I would also cap or collapse helper text in the reflect view: full `helper_text` from `prompts.json` is valuable for depth but competes with the textarea in a non-scrolling panel. A “show context” toggle on View 3 (mirroring View 2b’s flip) would preserve richness without crowding the writing surface on every draw.
 
-Connect your own Notion account to export compiled documents. Each export goes to a page you choose in your workspace. Design Buddy does not write to the plugin developer’s Notion workspace.
+## What does this work demonstrate?
 
----
-
-## Notes for Figma reviewers (Notion OAuth)
-
-1. Open **View 5 (Log)** → **Documents** tab → **Connect Notion** (or **Export all to Notion**, which opens setup if needed).
-2. Click **Connect with Notion**. Sign-in opens in your **external browser** (expected for Figma desktop).
-3. Complete Notion authorization and page access in the browser.
-4. When the browser tab shows **Connected to Notion**, return to the plugin.
-5. Sign-in usually completes **automatically** within a few seconds. If the plugin does not advance, click **Finish Notion sign-in**.
-6. If automatic completion fails (common in Figma desktop due to sandbox limits), click **Paste connection code instead**, copy the code from the browser tab, paste it into the plugin, and click **Finish Notion sign-in** again.
-7. Choose a **parent page** for exports → **Save destination**.
-8. Export a document with **Export all to Notion** or per-document **Export to Notion**.
-
-**Backend:** `https://design-buddy-proxy.vercel.app` — OAuth config, token redeem, page search, and export only. No user tokens or reflection content are persisted on the server.
-
----
-
-## Project limitations
-
-### Notion OAuth in Figma desktop
-
-Figma runs the plugin UI in a sandboxed iframe. OAuth completes in the **system browser**, which cannot reliably `postMessage` back to the plugin or share clipboard data with it.
-
-**Primary path:** server polling after browser authorization (automatic when it succeeds).
-
-**Backup path:** user copies a short-lived connection code from the browser success page and pastes it into the plugin. This is documented in the connect modal (“Paste connection code instead”) and only appears when automatic sign-in does not complete.
-
-This is a **Figma platform constraint**, not a product choice to require manual tokens.
-
-### Local-first storage
-
-Reflections and compiled documents are stored in `figma.clientStorage` on the user’s machine. Clearing plugin data or switching machines does not sync reflections unless the user exports elsewhere (e.g. Notion).
-
-### Notion export scope
-
-Export sends compiled document reflections (text, metadata, optional frame preview images) to the user’s chosen Notion parent page. Incremental re-exports append new reflections to the same Notion page for that document.
-
----
-
-## Pre-submission checklist
-
-- [ ] Production Vercel env uses `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET`, `NOTION_REDIRECT_URI` only (no `NOTION_INTEGRATION_TOKEN` / `NOTION_PARENT_PAGE_ID`).
-- [ ] Full flow tested: connect → pick parent page → export → content appears in **reviewer’s own** Notion workspace.
-- [ ] Listing text includes privacy statement above.
-- [ ] Review notes include OAuth steps above for marketplace review.
+This project shows **interaction design** in the end-to-end flow: committed anchor gating on View 1, redraw limits and surprise-lock on View 2b, and compile-mode selection on View 5. **Implementation competency** appears in the split Figma architecture—`code.js` for storage and selection, `ui.html` for UI—and in incremental Notion sync via `notionExportedReflectionIds` per document. **Ethics and data stewardship** are visible in the architecture: reflections in `clientStorage`, user OAuth tokens stored locally, proxy routes that forward credentials without persisting content. **Domain synthesis** is the product itself: 44 reading-based prompts with citations, Thread deck `{past_excerpt}` substitution, and deck indicators that encode Inspiration, Connections, Interfacing, and Thread visually. Design Buddy is not a generic notes tool; it is a situated practice instrument for reflective HCD work inside Figma.
