@@ -108,7 +108,7 @@ Per `cursorrules` §14 build order (remaining):
 A Figma plugin called Design Buddy. It opens as a small panel (240 × 480px) inside Figma  
 and prompts HCD designers to reflect on their work at the end of each day. Reflections are  
 saved locally via figma.clientStorage and exported as a .md file. The full specification  
-lives in design-buddy-cursor-brief.md. Read that file before writing any code.
+lives in readme.md. Read that file before writing any code.
 
 ### 1. Version control — human commits, agent stages
 
@@ -251,7 +251,7 @@ explicitly instructs it:
 - `prompts.json` — this is source content, not code. It was written before the build began.
 - `.cursorrules` — this file.
 - `BUILDLOG.md` — the build record.
-- `design-buddy-cursor-brief.md` — the project specification.
+- `readme.md` — the project specification.
 
 If any task seems to require modifying these files, stop and ask first.
 
@@ -349,7 +349,7 @@ Stop and ask:
 
 ## Next step for the incoming agent (precise)
 
-1. Read `cursorrules`, `design-buddy-cursor-brief.md`, and this file.
+1. Read `cursorrules`, `readme.md`, and this file.
 2. Confirm current `git status` and have user commit current uncommitted work.
 3. Verify in Figma:
    - View 5 back-routing state logic (frame/prompt missing => View 1; else View 4).
@@ -371,7 +371,7 @@ mp2/
 │   └── embed-prompts-in-code.js
 ├── prompts-data.js            (legacy; unused)
 ├── cursorrules
-├── design-buddy-cursor-brief.md
+├── readme.md
 ├── BUILDLOG.md
 └── HANDOVER.md
 

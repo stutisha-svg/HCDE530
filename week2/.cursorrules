@@ -47,10 +47,11 @@ mp2/assets/icon.png
 mp2/assets/loading.gif
 mp2/code.js
 mp2/cursorrules
-mp2/design-buddy-cursor-brief.md
 mp2/manifest.json
+mp2/mp2.md
 mp2/prompts-data.js
 mp2/prompts.json
+mp2/readme.md
 mp2/reflection.md
 mp2/scripts/embed-deck-icons.py
 mp2/scripts/embed-prompts-in-code.js

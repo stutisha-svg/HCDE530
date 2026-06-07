@@ -9,7 +9,7 @@
 A Figma plugin called Design Buddy. It opens as a small panel (240 × 480px) inside Figma
 and prompts HCD designers to reflect on their work at the end of each day. Reflections are
 saved locally via figma.clientStorage and exported as a .md file. The full specification
-lives in design-buddy-cursor-brief.md. Read that file before writing any code.
+lives in readme.md. Read that file before writing any code.
 
 ---
 
@@ -174,7 +174,7 @@ explicitly instructs it:
 - `prompts.json` — this is source content, not code. It was written before the build began.
 - `.cursorrules` — this file.
 - `BUILDLOG.md` — the build record.
-- `design-buddy-cursor-brief.md` — the project specification.
+- `readme.md` — the project specification.
 
 If any task seems to require modifying these files, stop and ask first.
 
