@@ -10,7 +10,8 @@ This is a portfolio piece. The UI must be polished, considered, and feel like a 
 
 ## Live link to project
 
-https://canva.link/vq91v3syaortr3p
+[https://canva.link/vq91v3syaortr3p - demo video](https://canva.link/vq91v3syaortr3p)  
+[https://www.figma.com/community/plugin/1643810914516499216/design-buddy](https://www.figma.com/community/plugin/1643810914516499216/design-buddy) - figma community plugin link
 
 ---
 
@@ -295,12 +296,14 @@ This is where all design effort goes. Build the entire UI as a single HTML file 
 
 **View 1 — Anchor**
 The opening screen. Displays the plugin name and a short line: *"What were you working on today?"*
+
 - A button: "Use selected frame" — sends `get-selection` to code.js, displays the returned frame name as the anchor
 - A textarea: "Or describe it in your own words" — freeform text input
 - A "Continue" button — disabled until one of the two inputs has content
 
 **View 2 — Draw**
 The card draw screen.
+
 - Three deck options displayed as cards: Inspiration, Connections, Interfacing
 - A "Surprise me" option that picks a deck randomly
 - If 3+ reflections exist in storage, a fourth option: Thread
@@ -311,6 +314,7 @@ The card draw screen.
 
 **View 3 — Reflect**
 The reflection screen.
+
 - Shows the anchor (frame name or typed text) at the top in small muted type
 - Shows the drawn prompt in medium type
 - If a previous reflection exists: show a subtle "Earlier you noted:" prefix with the first sentence of the last reflection, above the prompt
@@ -319,27 +323,30 @@ The reflection screen.
 
 **View 4 — Saved**
 Confirmation screen.
+
 - A brief, warm confirmation message — not "Success!" but something human, e.g. *"Saved. See you tomorrow."*
 - Two options: "See all reflections" or "Generate document"
 - A small close button
 
 **View 5 — Log**
 A scrollable list of all saved reflections, newest first. Each entry shows:
+
 - Date and deck label
 - The anchor
 - The prompt (collapsed, expandable)
 - The full reflection text
 
 ## View 6 — Document generation
- 
+
 At 240px wide there is no room for a document preview. This view is a single focused action.
- 
+
 - A brief description of what will be generated: *"A structured reflection document from all your saved entries, grouped by deck."*
 - One primary button: **Download .md file**
   - On click: compile all reflections into a Markdown string (see format below), create a Blob, trigger a download via a temporary anchor element. The file is named `design-buddy-reflections-[date].md`.
 - One secondary button: **Connect Notion** (greyed out with a "coming soon" label for the June 3 UI milestone — wire the actual API call after)
+
 ### Markdown output format
- 
+
 ```markdown
 # Design Buddy — Reflection Log
 Generated: [date]
@@ -371,15 +378,15 @@ Generated: [date]
  
 [designer's response]
 ```
- 
+
 ### Notion API — stretch goal (build after June 3)
- 
+
 Use the Notion API to create a new page in the designer's workspace. Each reflection becomes a toggle block — the prompt is the toggle label, the response is the body. Requires the designer to paste a Notion integration token into a settings field in the plugin. Document the setup steps clearly in the README.
- 
+
 ---
- 
+
 ## Data structure — one reflection entry
- 
+
 ```json
 {
   "id": "uuid",
@@ -394,9 +401,8 @@ Use the Notion API to create a new page in the designer's workspace. Each reflec
   "aiPrompt": "Optional: the AI-generated follow-up question if API call was made"
 }
 ```
- 
+
 ---
- 
 
 ## AI API call —  (build after UI is complete)
 
@@ -416,6 +422,7 @@ After the designer writes their reflection and hits Save, make one call to the A
 The plugin should feel like a considered tool, not a form. Design direction: **quiet editorial**. Think a well-designed notebook app — generous whitespace, confident typography, minimal chrome. The card draw moment should feel tactile and intentional, not like clicking a dropdown.
 
 -The plugin is 240 × 480px — roughly a quarter of a phone screen. Every pixel is load-bearing. This is not a panel with features, it is a focused object that sits quietly in the corner of Figma while the designer works.
+
 - No bright colors. A black and white notebook feel.
 - Typography is the primary design element. Use a serif or distinctive sans for the prompt text — it should feel different from the UI chrome. (Amatic SC for prompt cards, tool general font - Figtree)
 - The reflection textarea should feel open and inviting — large, no border box feel.
@@ -424,7 +431,7 @@ The plugin should feel like a considered tool, not a form. Design direction: **q
 -Each card will have a button (with the eye icon) to expand and read helper text for prompts. 
 - Every screen should feel like it has one job and does it without clutter.
 - No scrolling within views where possible. Each view fits its content within 480px.
-- Deck cards on View 2 are in a 2x2 grid — a label and one line of description. 
+- Deck cards on View 2 are in a 2x2 grid — a label and one line of description.
 
 ---
 
@@ -439,5 +446,4 @@ The plugin should feel like a considered tool, not a form. Design direction: **q
 7. End-to-end test
 
 ---
-
 
